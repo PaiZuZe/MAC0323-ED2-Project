@@ -60,9 +60,12 @@ EntryData *stable_find(SymbolTable table, const char *key) {
     return NULL;
 }
 
-int stable_visit(SymbolTable table,
-                 int (*visit)(const char *key, EntryData *data)) {
-                     return 0;
+int stable_visit(SymbolTable table, int (*visit)(const char *key, EntryData *data)) {
+    int i;
+    for (i = 0; i < table->last; i++)
+        if (!visit(table->key[i], &table->data[i]))
+            return 0;
+    return 1;
 }
 
 int main() {
