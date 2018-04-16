@@ -1,10 +1,11 @@
-// Guilherme Costa Vieira               Nº USP: 9790930
-// Gabriel Kazuyuki Isomura             Nº USP: 9793673
-// Victor Chiaradia Gramuglia Araujo    Nº USP: 9793756
+/* Guilherme Costa Vieira               Nº USP: 9790930
+   Gabriel Kazuyuki Isomura             Nº USP: 9793673
+   Victor Chiaradia Gramuglia Araujo    Nº USP: 9793756
+*/
 #include "buffer.h"
 
 Buffer *buffer_resize(Buffer *B) {
-    int new_n, i = B->n*2;
+    int new_n = B->n*2, i;
     Buffer *new_buffer = malloc(sizeof(Buffer));
     new_buffer->n = new_n;
     new_buffer->i = B->i;

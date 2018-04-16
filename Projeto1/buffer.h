@@ -1,6 +1,7 @@
-// Guilherme Costa Vieira               Nº USP: 9790930
-// Gabriel Kazuyuki Isomura             Nº USP: 9793673
-// Victor Chiaradia Gramuglia Araujo    Nº USP: 9793756
+/* Guilherme Costa Vieira               Nº USP: 9790930
+   Gabriel Kazuyuki Isomura             Nº USP: 9793673
+   Victor Chiaradia Gramuglia Araujo    Nº USP: 9793756
+*/
 /*
   buffer.h
 
@@ -14,11 +15,11 @@
 #include <stdlib.h>
 
 
-// Buffer struct.
+/* Buffer struct. */
 typedef struct buffer_s {
   char *data;
 
-  // Buffer max. size and first free position.
+  /* Buffer max. size and first free position. */
   int n, i;
 } Buffer;
 
