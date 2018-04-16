@@ -4,16 +4,12 @@
 */
 #include "buffer.h"
 
+#include <unistd.h>
+
 Buffer *buffer_resize(Buffer *B) {
-    int new_n = B->n*2, i;
-    Buffer *new_buffer = malloc(sizeof(Buffer));
-    new_buffer->n = new_n;
-    new_buffer->i = B->i;
-    new_buffer->data = malloc(new_n * sizeof(char));
-    for (i = 0; i < B->n; i++)
-        new_buffer->data[i] = B->data[i];
-    buffer_destroy(B);
-    return new_buffer;
+    B->n *= 2;
+    B->data = (char *) realloc(B->data, B->n * sizeof(char));
+    return B;
 }
 
 Buffer *buffer_create() {
@@ -31,7 +27,10 @@ void buffer_destroy(Buffer *B) {
 }
 
 void buffer_reset(Buffer *B) {
+    free(B->data);
+    B->data = malloc(sizeof(char));
     B->i = 0;
+    B->n = 1;
     return;
 }
 
@@ -46,21 +45,23 @@ void buffer_push_back(Buffer *B, char c) {
 int read_line(FILE *input, Buffer *B) {
     char char_read;
     int n_chars_read = 0;
+
     buffer_reset(B);
     char_read = fgetc(input);
-    buffer_push_back(B, char_read);
-    /*Provavelmente podia ser um do while*/
+
     if (char_read == EOF)
         return 0;
-    n_chars_read++;
-    while (char_read != EOF || char_read != '\n') {
+
+    while (char_read != EOF && char_read != '\n') {
         buffer_push_back(B, char_read);
         n_chars_read++;
         char_read = fgetc(input);
     }
+
     if (char_read == '\n') {
         buffer_push_back(B, char_read);
         n_chars_read++;
     }
+
     return n_chars_read;
 }

@@ -2,6 +2,10 @@
 #include <ctype.h>
 
 void write_file(Buffer *b, char *output_file) {
+    FILE *output;
+    output = fopen(output_file, "a");
+    fprintf(output, "%s", b->data);
+    fclose(output);
     return;
 }
 
@@ -11,34 +15,22 @@ Buffer *strip_space(Buffer * b) {
     Buffer *new_buffer;
 
     temp1 = 0;
-    temp2 = b->i -1;
+    temp2 = b->i;
 
     new_buffer = buffer_create();
-
-    while(temp1 < b->i && isspace(b->data[temp1]))
-        temp1++;
-    while(temp2 >= 0 && isspace(b->data[temp2]))
-        temp2--;
-
+    while(temp1 < b->i && isspace(b->data[temp1])) temp1++;
+    while(temp2 >= 0 && isspace(b->data[temp2])) temp2--;
+    /*
     if (temp1 == b->i) {
         buffer_destroy(new_buffer);
         return b;
     }
-
+    */
     i = temp1;
-    while(i < temp2) {
+    while(i <= temp2) {
         buffer_push_back(new_buffer, b->data[i]);
-        if(!isspace(b->data[i + 1])) {
-            i++;
-            continue;
-        }
-        while(isspace(b->data[i]))
-            i++;
-        buffer_push_back(new_buffer, ' ');
+        i++;
     }
-
-    buffer_push_back(new_buffer, '\n');
-
     buffer_destroy(b);
     return new_buffer;
 }
@@ -61,10 +53,11 @@ void center(char *input_file, char *output_file, int c) {
             write_file(buffer, output_file);
         }
         else {
-            return;
+            write_file(buffer, output_file);
         }
 
     }
+    fclose(input);
 
     return;
 }
