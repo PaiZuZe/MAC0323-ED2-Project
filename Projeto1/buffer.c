@@ -3,7 +3,6 @@
    Victor Chiaradia Gramuglia Araujo    Nº USP: 9793756
 */
 #include "buffer.h"
-
 #include <unistd.h>
 
 Buffer *buffer_resize(Buffer *B) {
@@ -49,9 +48,10 @@ int read_line(FILE *input, Buffer *B) {
     buffer_reset(B);
     char_read = fgetc(input);
 
+
     if (char_read == EOF)
         return 0;
-
+        
     while (char_read != EOF && char_read != '\n') {
         buffer_push_back(B, char_read);
         n_chars_read++;
