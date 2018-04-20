@@ -11,26 +11,29 @@ void write_file(Buffer *b, char *output_file) {
 
 
 Buffer *strip_space(Buffer * b) {
-    int temp1, temp2, i;
+    int ini, final, i;
     Buffer *new_buffer;
 
-    temp1 = 0;
-    temp2 = b->i;
+    ini = 0;
+    final = b->i -1;
 
     new_buffer = buffer_create();
-    while(temp1 < b->i && isspace(b->data[temp1])) temp1++;
-    while(temp2 >= 0 && isspace(b->data[temp2])) temp2--;
-    /*
-    if (temp1 == b->i) {
+    while(ini < b->i && isspace(b->data[ini])) ini++;
+    while(final >= 0 && isspace(b->data[final])) final--;
+
+    if (final < ini) {
         buffer_destroy(new_buffer);
+        buffer_reset(b);
+        b->data[0] = '\0';
         return b;
     }
-    */
-    i = temp1;
-    while(i <= temp2) {
+
+    i = ini;
+    while(i <= final) {
         buffer_push_back(new_buffer, b->data[i]);
         i++;
     }
+    buffer_push_back(new_buffer, '\n');
     buffer_destroy(b);
     return new_buffer;
 }
