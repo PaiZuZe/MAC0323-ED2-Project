@@ -60,6 +60,7 @@ Buffer *strip_space(Buffer * b) {
         i++;
     }
     buffer_push_back(new_buffer, '\n');
+    buffer_push_back(new_buffer, '\0');
     buffer_destroy(b);
     return new_buffer;
 }
@@ -83,8 +84,8 @@ void center(char *input_file, char *output_file, int col) {
     while(read_line(input, buffer)) {
         buffer = strip_space(buffer);
 
-        if (isspace(buffer->data[0]))
-            write_file(buffer, output_file, line, col);
+        if (iscntrl(buffer->data[0]))
+            continue;
         else
             write_file(buffer, output_file, line, col);
         line++;
