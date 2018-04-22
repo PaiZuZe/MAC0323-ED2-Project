@@ -9,9 +9,9 @@
  * stored in the buffer in the file named output_file. */
 void write_file(Buffer *b, char *output_file, int line, int col) {
     FILE *output;
-    int spaces = (col - b->i)/2;
+    int spaces = (col - b->p)/2;
     output = fopen(output_file, "a");
-    /* fprintf(stderr, "b->i = %d and spaces = %d\n", b->i, spaces); */
+    /* fprintf(stderr, "b->p = %d and spaces = %d\n", b->p, spaces); */
     /* Checks if the line is too long. */
     if (spaces >= 0) {
         while (spaces > 0) {
@@ -22,7 +22,7 @@ void write_file(Buffer *b, char *output_file, int line, int col) {
     else
         fprintf(stderr, "center: %s: line %d is too long.\n",
                 output_file, line);
-    fprintf(output, "%s", b->data);
+    fprintf(output, "%s", (char *) b->data);
     fclose(output);
     return;
 }
@@ -34,13 +34,13 @@ void write_file(Buffer *b, char *output_file, int line, int col) {
 Buffer *strip_space(Buffer * b) {
     int ini, final, i;
     Buffer *new_buffer;
-    new_buffer = buffer_create();
+    new_buffer = buffer_create(b->member_size);
 
     ini = 0; /* Position of the first non-space character. */
-    final = b->i -1; /* Position of the last non-space character. */
+    final = (int) b->p -1; /* Position of the last non-space character. */
     /* Find ini and final. */
-    while(ini < b->i && isspace(b->data[ini])) ini++;
-    while(final >= 0 && isspace(b->data[final])) final--;
+    while(ini < final + 1 && isspace(((char *) b->data)[ini])) ini++;
+    while(final >= 0 && isspace(((char *) b->data)[final])) final--;
 
     /* Checks if is a blank line. */
     if (final < ini) {
@@ -48,7 +48,7 @@ Buffer *strip_space(Buffer * b) {
         buffer_reset(b);
         /* Adds null terminator in the first position in order to not print
          * garbage (indicating an empty line). */
-        b->data[0] = '\0';
+        ((char *)b->data)[0] = '\0';
         return b;
     }
 
@@ -56,11 +56,14 @@ Buffer *strip_space(Buffer * b) {
      * characters. */
     i = ini;
     while(i <= final) {
-        buffer_push_back(new_buffer, b->data[i]);
+        buffer_push_char(new_buffer, ((char *) b->data)[i]);
+        new_buffer->p += 1;
         i++;
     }
-    buffer_push_back(new_buffer, '\n');
-    buffer_push_back(new_buffer, '\0');
+    buffer_push_char(new_buffer, '\n');
+    new_buffer->p += 1;
+    buffer_push_char(new_buffer, '\0');
+    new_buffer->p += 1;
     buffer_destroy(b);
     return new_buffer;
 }
@@ -69,7 +72,7 @@ void center(char *input_file, char *output_file, int col) {
     int line;
     Buffer *buffer;
     FILE *input;
-    buffer = buffer_create();
+    buffer = buffer_create(sizeof(char));
 
     /* Opening the input_file. */
     input = fopen(input_file, "r");
@@ -84,7 +87,7 @@ void center(char *input_file, char *output_file, int col) {
     while(read_line(input, buffer)) {
         buffer = strip_space(buffer);
 
-        if (iscntrl(buffer->data[0]))
+        if (iscntrl(((char *) buffer->data)[0]))
             continue;
         else
             write_file(buffer, output_file, line, col);

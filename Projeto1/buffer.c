@@ -6,16 +6,17 @@
 #include <unistd.h>
 
 Buffer *buffer_resize(Buffer *B) {
-    B->n *= 2;
-    B->data = (char *) realloc(B->data, B->n * sizeof(char));
+    B->buffer_size *= 2;
+    B->data = realloc(B->data, B->buffer_size * B->member_size);
     return B;
 }
 
-Buffer *buffer_create() {
+Buffer *buffer_create(size_t member_size) {
     Buffer *buffer = malloc(sizeof(Buffer));
-    buffer->n = 1;
-    buffer->i = 0;
-    buffer->data = malloc(sizeof(char));
+    buffer->buffer_size = 1;
+    buffer->member_size = member_size;
+    buffer->p = 0;
+    buffer->data = malloc(member_size);
     return buffer;
 }
 
@@ -27,18 +28,16 @@ void buffer_destroy(Buffer *B) {
 
 void buffer_reset(Buffer *B) {
     free(B->data);
-    B->data = malloc(sizeof(char));
-    B->i = 0;
-    B->n = 1;
+    B->data = malloc((B->member_size));
+    B->p = 0;
+    B->buffer_size = 1;
     return;
 }
 
-void buffer_push_back(Buffer *B, char c) {
-    if (B->n == B->i)
+void *buffer_push_back(Buffer *B){
+    if (B->buffer_size == B->p)
         B = buffer_resize(B);
-    B->data[B->i] = c;
-    B->i++;
-    return;
+    return &((char *) B->data)[B->p];
 }
 
 int read_line(FILE *input, Buffer *B) {
@@ -51,15 +50,17 @@ int read_line(FILE *input, Buffer *B) {
 
     if (char_read == EOF)
         return 0;
-        
+
     while (char_read != EOF && char_read != '\n') {
-        buffer_push_back(B, char_read);
+        buffer_push_char(B, char_read);
+        B->p += 1;
         n_chars_read++;
         char_read = fgetc(input);
     }
 
     if (char_read == '\n') {
-        buffer_push_back(B, char_read);
+        buffer_push_char(B, char_read);
+        B->p += 1;
         n_chars_read++;
     }
 

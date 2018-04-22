@@ -1,11 +1,7 @@
-/* Guilherme Costa Vieira               Nº USP: 9790930
-   Gabriel Kazuyuki Isomura             Nº USP: 9793673
-   Victor Chiaradia Gramuglia Araujo    Nº USP: 9793756
-*/
 /*
   buffer.h
 
-  A character buffer.
+  A generic buffer interface.
 */
 
 #ifndef __BUFFER_H__
@@ -14,19 +10,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-/* Buffer struct. */
+/*
+Buffer struct.
+*/
 typedef struct buffer_s {
-  char *data;
-
-  /* Buffer max. size and first free position. */
-  int n, i;
+  void *data;
+  size_t buffer_size;  /* Number of members in data array. */
+  size_t member_size;  /* Size of one member. */
+  size_t p;  /* First free position in data. */
 } Buffer;
 
 /*
-  Create and return a new and empty buffer.
+  Create and return a new buffer that holds member elements of size
+  member_size.
 */
-Buffer *buffer_create();
+Buffer *buffer_create(size_t member_size);
 
 /*
   Destroy a buffer.
@@ -39,19 +37,25 @@ void buffer_destroy(Buffer *B);
 void buffer_reset(Buffer *B);
 
 /*
-  Add a character c to the end of the buffer.
+  Return a valid pointer to the first free position of the
+  buffer. This means that, if the space allocated is not enough, then
+  the buffer size is increased and the contents are copied.
 */
-void buffer_push_back(Buffer *B, char c);
+void *buffer_push_back(Buffer *B);
 
 /*
   Read a line (i.e., reads up to a newline '\n' character or the
   end-of-file) from the input file and places it into the given
   buffer, including the newline character if it is present. The buffer
   is resetted before the line is read.
-
   Returns the number of characters read; in particular, returns ZERO
   if end-of-file is reached before any characters are read.
 */
 int read_line(FILE *input, Buffer *B);
+
+/*
+Some handy abbreviations.
+*/
+#define buffer_push_char(B, c)  (*((char *) buffer_push_back(B)) = c)
 
 #endif
