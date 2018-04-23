@@ -14,7 +14,7 @@ void write_file(Buffer *b, char *output_file, int line, int col) {
     /* fprintf(stderr, "b->p = %d and spaces = %d\n", b->p, spaces); */
     /* Checks if the line is too long. */
     if (spaces >= 0) {
-        while (spaces > 0) {
+        while (spaces >= 0) {
             fprintf(output, " ");
             spaces--;
         }
