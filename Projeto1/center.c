@@ -43,22 +43,15 @@ Buffer *strip_space(Buffer * b) {
     while(final >= 0 && isspace(((char *) b->data)[final])) final--;
 
     /* Checks if is a blank line. */
-    if (final < ini) {
-        buffer_destroy(new_buffer);
-        buffer_reset(b);
-        /* Adds null terminator in the first position in order to not print
-         * garbage (indicating an empty line). */
-        ((char *)b->data)[0] = '\0';
-        return b;
-    }
-
-    /* Pushes the characters between the first and the last non-space
-     * characters. */
-    i = ini;
-    while(i <= final) {
-        buffer_push_char(new_buffer, ((char *) b->data)[i]);
-        new_buffer->p += 1;
-        i++;
+    if (!(final < ini)) {
+        /* Pushes the characters between the first and the last non-space
+        * characters. */
+        i = ini;
+        while(i <= final) {
+            buffer_push_char(new_buffer, ((char *) b->data)[i]);
+            new_buffer->p += 1;
+            i++;
+        }
     }
     buffer_push_char(new_buffer, '\n');
     new_buffer->p += 1;
@@ -69,7 +62,7 @@ Buffer *strip_space(Buffer * b) {
 }
 
 void center(char *input_file, char *output_file, int col) {
-    int line;
+    int line, chars, prev_line;
     Buffer *buffer;
     FILE *input;
     buffer = buffer_create(sizeof(char));
@@ -81,17 +74,17 @@ void center(char *input_file, char *output_file, int col) {
         exit(1);
     }
 
+    prev_line = 0;
     /* Reads every line from input_file, centralize and print them to the
      * output_file. */
     line = 1;
-    while(read_line(input, buffer)) {
-        buffer = strip_space(buffer);
-
-        if (iscntrl(((char *) buffer->data)[0]))
+    while((chars = read_line(input, buffer))) {
+        if (chars == 1 && prev_line == 1)
             continue;
-        else
-            write_file(buffer, output_file, line, col);
+        buffer = strip_space(buffer);
+        write_file(buffer, output_file, line, col);
         line++;
+        prev_line = chars;
     }
     fclose(input);
 
