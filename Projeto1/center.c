@@ -13,13 +13,13 @@ void write_file(Buffer *b, char *output_file, int line, int col) {
     output = fopen(output_file, "a");
     /* fprintf(stderr, "b->p = %d and spaces = %d\n", b->p, spaces); */
     /* Checks if the line is too long. */
-    if (spaces >= 0) {
+    if (spaces >= 0 && !isspace(((char *) b->data)[0])) {
         while (spaces >= 0) {
             fprintf(output, " ");
             spaces--;
         }
     }
-    else
+    else if (!isspace(((char *) b->data)[0]))
         fprintf(stderr, "center: %s: line %d is too long.\n",
                 output_file, line);
     fprintf(output, "%s", (char *) b->data);
@@ -62,7 +62,7 @@ Buffer *strip_space(Buffer * b) {
 }
 
 void center(char *input_file, char *output_file, int col) {
-    int line, chars, prev_line;
+    int line, prev_line;
     Buffer *buffer;
     FILE *input;
     buffer = buffer_create(sizeof(char));
@@ -78,13 +78,16 @@ void center(char *input_file, char *output_file, int col) {
     /* Reads every line from input_file, centralize and print them to the
      * output_file. */
     line = 1;
-    while((chars = read_line(input, buffer))) {
-        if (chars == 1 && prev_line == 1)
-            continue;
+    while(read_line(input, buffer)) {
         buffer = strip_space(buffer);
+        if (isspace(((char *) buffer->data)[0]) && prev_line == 1) {
+            prev_line = 1;
+            continue;
+        }
+        if (isspace(((char *) buffer->data)[0])) prev_line = 1;
+        else prev_line = 0;
         write_file(buffer, output_file, line, col);
         line++;
-        prev_line = chars;
     }
     fclose(input);
 
