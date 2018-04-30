@@ -62,7 +62,7 @@ Buffer *strip_space(Buffer * b) {
 }
 
 void center(char *input_file, char *output_file, int col) {
-    int line, prev_line;
+    int line, prev_line, first_output_line;
     Buffer *buffer;
     FILE *input;
     buffer = buffer_create(sizeof(char));
@@ -74,14 +74,25 @@ void center(char *input_file, char *output_file, int col) {
         exit(1);
     }
 
-    prev_line = 0;
     /* Reads every line from input_file, centralize and print them to the
      * output_file. */
     line = 1;
+    prev_line = 0;
+    first_output_line = 1;
     while(read_line(input, buffer)) {
         buffer = strip_space(buffer);
+
+        if (isspace(((char *) buffer->data)[0]) && first_output_line) {
+            line++;
+            continue;
+        }
+        else {
+            first_output_line = 0;
+        }
+
         if (isspace(((char *) buffer->data)[0]) && prev_line == 1) {
             prev_line = 1;
+            line++;
             continue;
         }
         if (isspace(((char *) buffer->data)[0])) prev_line = 1;

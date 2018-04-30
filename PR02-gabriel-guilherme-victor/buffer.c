@@ -3,7 +3,6 @@
    Victor Chiaradia Gramuglia Araujo    Nº USP: 9793756
 */
 #include "buffer.h"
-#include <unistd.h>
 
 Buffer *buffer_resize(Buffer *B) {
     B->buffer_size *= 2;
