@@ -1,11 +1,27 @@
-center : center.o buffer.o    
-	gcc -Wall -std=c99 -pedantic -O2 -Wextra buffer.o center.o -o center
+CC := gcc
+RM := rm -f
 
-center.o : center.c
-	gcc -Wall -std=c99 -pedantic -O2 -Wextra center.c -c
-    
-buffer.o : buffer.c
-	gcc -Wall -std=c99 -pedantic -O2 -Wextra buffer.c -c
-	
-clean :
-	rm *.o && rm center	        
+CFLAGS := -Wall -std=c99 -pedantic -O2 -Wextra
+
+BIN := freq
+SRC := $(wildcard *.c)
+OBJ := $(SRC:.c=.o)
+
+OUT := ./
+
+.PHONY: all
+all: $(BIN)
+
+.PHONY: clean
+clean:
+        $(RM) $(OUT)$(BIN)
+        $(RM) $(OBJ)
+
+$(BIN): $(OBJ)
+        $(CC) $(CFLAGS) $^ -o $(OUT)$@
+
+$(OBJ): $(SRC)
+        $(CC) $(CFLAGS) -c $^
+
+$(OUT):
+        mkdir $(OUT)
