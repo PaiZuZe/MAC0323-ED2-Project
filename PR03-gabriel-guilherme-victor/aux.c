@@ -23,8 +23,8 @@ char *strclone (char *dest, const char *src)
 
     length = strlen (src);
     dest = emalloc (length*sizeof(char));
-    dest = strncpy (dest, src, length);
-    if (length > 0) dest[length - 1] = '\0';
+    dest = strcpy (dest, src);
+    if (length > 0) dest[length] = '\0';
 
     return dest;
 }

@@ -22,7 +22,6 @@ Node bst_insert (Node root, Buffer *buffer)
     if (root == NULL) {
         root = emalloc (sizeof (struct bst_s));
         root->key = strnclone (root->key, (char *) buffer->data, buffer->p + 1);
-        printf ("Inserting in tree: %s\n", root->key);
         root->left = NULL;
         root->right = NULL;
     }
