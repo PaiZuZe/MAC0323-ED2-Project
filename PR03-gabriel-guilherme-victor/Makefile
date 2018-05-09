@@ -1,3 +1,7 @@
+# Guilherme Costa Vieira               9790930
+# Gabriel Kazuyuki Isomura             9793673
+# Victor Chiaradia Gramuglia Araujo    9793756
+
 CC := gcc
 RM := rm -f
 
@@ -10,18 +14,19 @@ OBJ := $(SRC:.c=.o)
 OUT := ./
 
 .PHONY: all
-all: $(BIN)
+all: ${BIN}
 
 .PHONY: clean
 clean:
-        $(RM) $(OUT)$(BIN)
-        $(RM) $(OBJ)
+	${RM} ${OUT}${BIN}
+	${RM} ${OBJ}
 
-$(BIN): $(OBJ)
-        $(CC) $(CFLAGS) $^ -o $(OUT)$@
+$(BIN): ${OBJ}
+	${CC} ${CFLAGS} $^ -o ${OUT}$@
 
-$(OBJ): $(SRC)
-        $(CC) $(CFLAGS) -c $^
+$(OBJ): ${SRC}
+	${CC} ${CFLAGS} -c $^
 
 $(OUT):
-        mkdir $(OUT)
+	mkdir ${OUT}
+

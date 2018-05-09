@@ -1,0 +1,2 @@
+Isto e' um teste da terceira parte do projeto de MAC0323.
+O projeto de MAC0323 deve ser escrito em C.
