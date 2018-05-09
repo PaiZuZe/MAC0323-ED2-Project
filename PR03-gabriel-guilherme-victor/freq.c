@@ -21,7 +21,7 @@ Node bst_insert (Node root, Buffer *buffer)
 {
     if (root == NULL) {
         root = emalloc (sizeof (struct bst_s));
-        root->key = strnclone (root->key, (char *) buffer->data, buffer->p + 1);
+        root->key = strnclone (root->key, (char *) buffer->data, buffer->p);
         root->left = NULL;
         root->right = NULL;
     }
@@ -37,7 +37,7 @@ InsertionResult safe_st_insert (SymbolTable table, Buffer *buffer)
 {
     char *key = buffer->data;
 
-    key = strnclone (key, (char *) buffer->data, buffer->p + 1);
+    key = strnclone (key, (char *) buffer->data, buffer->p);
     return stable_insert (table, key);
 }
 
@@ -75,6 +75,8 @@ void store_words (FILE *file, Node *root, SymbolTable *table, int *max_word)
         }
         else if (in_word) {
             in_word = 0;
+            buffer_push_char (b, '\0');
+            b->p++;
             insertion = safe_st_insert (*(table), b);
             if (insertion.new) {
                 insertion.data->i = 1;
@@ -89,6 +91,8 @@ void store_words (FILE *file, Node *root, SymbolTable *table, int *max_word)
         c = fgetc (file);
     }
     if (in_word) {
+        buffer_push_char (b, '\0');
+        b->p++;
         insertion = safe_st_insert (*(table), b);
         if (insertion.new) {
             insertion.data->i = 1;
@@ -127,4 +131,3 @@ int main (int argc, char **argv) {
     stable_destroy (st);
     return 0;
 }
-

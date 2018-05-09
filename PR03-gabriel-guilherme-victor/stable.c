@@ -108,7 +108,7 @@ SymbolTable stable_resize (SymbolTable table)
             *(insertion.data) = *(bkt->val);
 
             bkt = bkt->next;
-            free (table->data[i]);
+            bucket_destroy (table->data[i]);
         }
     }
     free (table);
@@ -193,4 +193,3 @@ int stable_visit (SymbolTable table,
 
     return result;
 }
-

@@ -22,7 +22,7 @@ char *strclone (char *dest, const char *src)
     size_t length;
 
     length = strlen (src);
-    dest = emalloc (length*sizeof(char));
+    dest = emalloc ((length + 1)*sizeof(char));
     dest = strcpy (dest, src);
     if (length > 0) dest[length] = '\0';
 
@@ -37,4 +37,3 @@ char *strnclone (char *dest, const char *src, size_t n)
 
     return dest;
 }
-
