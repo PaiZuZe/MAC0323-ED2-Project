@@ -19,17 +19,16 @@ typedef struct bst_s
 
 Node bst_insert (Node root, Buffer *buffer)
 {
-    char *key;
-
     if (root == NULL) {
         root = emalloc (sizeof (struct bst_s));
-        root->key = strnclone (root->key, (char *) buffer->data, buffer->p);
+        root->key = strnclone (root->key, (char *) buffer->data, buffer->p + 1);
+        printf ("Inserting in tree: %s\n", root->key);
         root->left = NULL;
         root->right = NULL;
     }
-    else if (strcmp (key, root->key) < 0)
+    else if (strcmp (buffer->data, root->key) < 0)
         root->left = bst_insert (root->left, buffer);
-    else if (strcmp (key, root->key) > 0)
+    else if (strcmp (buffer->data, root->key) > 0)
         root->right = bst_insert (root->right, buffer);
 
     return root;
@@ -39,7 +38,7 @@ InsertionResult safe_st_insert (SymbolTable table, Buffer *buffer)
 {
     char *key = buffer->data;
 
-    key = strnclone (key, (char *) buffer->data, buffer->p);
+    key = strnclone (key, (char *) buffer->data, buffer->p + 1);
     return stable_insert (table, key);
 }
 
@@ -73,7 +72,7 @@ void store_words (FILE *file, Node *root, SymbolTable *table, int *max_word)
         if (!isblank (c) && c != '\n') { /* \n Nao e blank e buga a saida */
             if (!in_word) in_word = 1;
             buffer_push_char (b, c);
-            b->p += 1;
+            b->p++;
         }
         else if (in_word) {
             in_word = 0;
