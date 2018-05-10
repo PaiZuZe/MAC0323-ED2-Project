@@ -17,6 +17,9 @@ typedef struct bst_s
     struct bst_s *right;
 } *Node;
 
+/*
+    Inserts buffer content in BST
+*/
 Node bst_insert (Node root, Buffer *buffer)
 {
     if (root == NULL) {
@@ -33,6 +36,9 @@ Node bst_insert (Node root, Buffer *buffer)
     return root;
 }
 
+/*
+    Inserts buffer content in symbol table
+*/
 InsertionResult safe_st_insert (SymbolTable table, Buffer *buffer)
 {
     char *key = buffer->data;
@@ -41,6 +47,10 @@ InsertionResult safe_st_insert (SymbolTable table, Buffer *buffer)
     return stable_insert (table, key);
 }
 
+/*
+    Traverse tree in-order, printing each key and its corresponding value in the
+    symbol table
+*/
 void print_keys (Node root, SymbolTable table, int max_word)
 {
     int count, spaces;
@@ -59,6 +69,10 @@ void print_keys (Node root, SymbolTable table, int max_word)
     if (root->right != NULL) print_keys (root->right, table, max_word);
 }
 
+/*
+    Reads file and stores words on both symbol table and BST, keeping track of
+    the length of the longest word.
+*/
 void store_words (FILE *file, Node *root, SymbolTable *table, int *max_word)
 {
     Buffer *b;
@@ -68,7 +82,7 @@ void store_words (FILE *file, Node *root, SymbolTable *table, int *max_word)
     b = buffer_create (sizeof(char));
     c = fgetc (file);
     while (c != EOF) {
-        if (!isblank (c) && c != '\n') { /* \n Nao e blank e buga a saida */
+        if (!isblank (c) && c != '\n') {
             if (!in_word) in_word = 1;
             buffer_push_char (b, c);
             b->p++;

@@ -4,23 +4,19 @@
     Victor Chiaradia Gramuglia Araujo    9793756
 */
 
-/*
-    TODO
-    Arrumar o redimensionamento
-    Tirar lixo das strings
-*/
-
 #include "stable.h"
 #include "aux.h"
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h> /* Remover antes de entregar */
 
 #define INIT_SIZE 191
 #define HASH_FACTOR 61
 
 long int hash_it (const char *key, long int size);
 
+/*
+    A linked list data type, stores elements with the same hash code
+*/
 typedef struct bucket_s
 {
     char *key;
@@ -34,6 +30,9 @@ struct stable_s
     long int size, items;
 };
 
+/*
+    Inserts an element in the bucket (at the front of the list)
+*/
 Bucket bucket_insert (Bucket head, const char *key)
 {
     Bucket new_bucket;
@@ -57,14 +56,15 @@ void bucket_destroy (Bucket head)
     }
 }
 
+/*
+    Searches a bucket for the node associated with a given key. Returns NULL if
+    such node isn't found.
+*/
 Bucket bucket_get (Bucket head, const char *key)
 {
     Bucket bkt = NULL;
 
     if (head != NULL) {
-//        printf ("Querying bucket with hash: %ld\n", hash_it (key, 391));
-//        if (head->key != NULL) printf ("Node key not null\n");
-//        printf ("Hit: %s, Hash: %ld\n", head->key, hash_it (head->key, 391));
         if (strcmp (head->key, key) == 0) bkt = head;
         else bkt = bucket_get (head->next, key);
     }
@@ -72,19 +72,26 @@ Bucket bucket_get (Bucket head, const char *key)
     return bkt;
 }
 
+/*
+    Visits each element in the bucket. If the visit function returns zero, then
+    the iteration stops. Returns zero if the iteration was stopped by the visit
+    function, nonzero otherwise.
+*/
 int bucket_visit (Bucket head, int (*visit)(const char *key, EntryData *data))
 {
     int result = 1;
 
     if (head != NULL) {
-        if (visit (head->key, head->val) == 0) result = 0;
-        else if (head->next != NULL) result = bucket_visit (head, visit);
+        if ((*visit)(head->key, head->val) == 0) result = 0;
+        else if (head->next != NULL) result = bucket_visit (head->next, visit);
     }
 
     return result;
 }
 
-/* Hashing modular */
+/*
+    Modular hashing function
+*/
 long int hash_it (const char *key, long int size)
 {
     long int h = 0, i;
@@ -93,6 +100,9 @@ long int hash_it (const char *key, long int size)
     return h;
 }
 
+/*
+    Resizes Bucket array
+*/
 SymbolTable stable_resize (SymbolTable table)
 {
     Bucket *old = table->data;
@@ -149,7 +159,6 @@ InsertionResult stable_insert (SymbolTable table, const char *key)
             table = stable_resize (table);
 
         bkt = &table->data[hash_it (key, table->size)];
-//        printf ("Inserting: %s, Hash: %ld, ST size: %ld\n", key, hash_it (key, table->size), table->size);
         if (bucket_get (*(bkt), key) == NULL) {
             *(bkt) = bucket_insert (*(bkt), key);
             result.new = 1;

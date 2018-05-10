@@ -4,7 +4,7 @@
 */
 #include "buffer.h"
 
-Buffer *buffer_resize(Buffer *B) {
+static Buffer *buffer_resize(Buffer *B) {
     B->buffer_size *= 2;
     B->data = realloc(B->data, B->buffer_size * B->member_size);
     return B;
