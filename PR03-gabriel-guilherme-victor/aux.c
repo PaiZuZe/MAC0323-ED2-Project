@@ -11,7 +11,7 @@ void *emalloc (size_t size)
     void *ptr = malloc (size);
 
     if (ptr == NULL) {
-        fprintf (stderr, "Memory allocation error!\n");
+        fprintf (stderr, "Memory allocation error! (aux.c: emalloc)\n");
         exit (1);
     }
     return ptr;
@@ -24,7 +24,11 @@ char *strclone (char *dest, const char *src)
     length = strlen (src);
     dest = emalloc ((length + 1)*sizeof(char));
     dest = strcpy (dest, src);
-    if (length > 0) dest[length] = '\0';
+    if (dest == NULL) {
+        fprintf (stderr, "Memory allocation error! (aux.c: strclone)\n");
+        exit (1);
+    }
+    else if (length > 0) dest[length] = '\0';
 
     return dest;
 }
@@ -33,7 +37,11 @@ char *strnclone (char *dest, const char *src, size_t n)
 {
     dest = emalloc (n*sizeof(char));
     dest = strncpy (dest, src, n);
-    if (n > 0) dest[n - 1] = '\0';
+    if (dest == NULL) {
+        fprintf (stderr, "Memory allocation error! (aux.c: strnclone)\n");
+        exit (1);
+    }
+    else if (n > 0) dest[n - 1] = '\0';
 
     return dest;
 }

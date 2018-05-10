@@ -19,6 +19,8 @@
 #define INIT_SIZE 191
 #define HASH_FACTOR 61
 
+long int hash_it (const char *key, long int size);
+
 typedef struct bucket_s
 {
     char *key;
@@ -60,6 +62,9 @@ Bucket bucket_get (Bucket head, const char *key)
     Bucket bkt = NULL;
 
     if (head != NULL) {
+//        printf ("Querying bucket with hash: %ld\n", hash_it (key, 391));
+//        if (head->key != NULL) printf ("Node key not null\n");
+//        printf ("Hit: %s, Hash: %ld\n", head->key, hash_it (head->key, 391));
         if (strcmp (head->key, key) == 0) bkt = head;
         else bkt = bucket_get (head->next, key);
     }
@@ -90,30 +95,24 @@ long int hash_it (const char *key, long int size)
 
 SymbolTable stable_resize (SymbolTable table)
 {
-    SymbolTable new_st = table;
-    InsertionResult insertion;
+    Bucket *old = table->data;
     Bucket bkt;
-    long int h = 2*table->size - 1, i;
+    long int old_size = table->size, h, i;
 
-    new_st = emalloc (sizeof(struct stable_s));
-    new_st->size = h;
-    new_st->data = emalloc (sizeof(Bucket)*new_st->size);
-    new_st->items = table->items;
-    for (i = 0; i < new_st->size; i++) new_st->data[i] = NULL;
+    table->size = 2*table->size - 1;
+    table->data = emalloc (sizeof(Bucket)*table->size);
+    for (i = 0; i < table->size; i++) table->data[i] = NULL;
 
-    for (i = 0; i < table->size; i++) {
-        bkt = table->data[i];
-        while (bkt != NULL) {
-            insertion = stable_insert (new_st, bkt->key);
-            *(insertion.data) = *(bkt->val);
-
-            bkt = bkt->next;
-            bucket_destroy (table->data[i]);
+    for (i = 0; i < old_size; i++) {
+        for (bkt = old[i]; bkt != NULL; bkt = bkt->next) {
+            h = hash_it (bkt->key, table->size);
+            table->data[h] = bucket_insert (table->data[h], bkt->key);
+            *(table->data[h]->val) = *(bkt->val);
         }
+        bucket_destroy (old[i]);
     }
-    free (table);
 
-    return new_st;
+    return table;
 }
 
 SymbolTable stable_create (void)
@@ -146,10 +145,11 @@ InsertionResult stable_insert (SymbolTable table, const char *key)
     Bucket *bkt;
 
     if (table != NULL) {
-        /*if (table->items >= 10*table->size)
-            table = stable_resize (table);*/
+        if (table->items >= 10*table->size)
+            table = stable_resize (table);
 
         bkt = &table->data[hash_it (key, table->size)];
+//        printf ("Inserting: %s, Hash: %ld, ST size: %ld\n", key, hash_it (key, table->size), table->size);
         if (bucket_get (*(bkt), key) == NULL) {
             *(bkt) = bucket_insert (*(bkt), key);
             result.new = 1;
@@ -193,3 +193,4 @@ int stable_visit (SymbolTable table,
 
     return result;
 }
+
