@@ -9,8 +9,8 @@ IME-USP
 * \[Done\] Part II: generic buffer
 
 + Part III: symbol table
+  - \[Done\] Use ST method *stable_visit* in main program (freq.c)
   - Decide whether the *newline* character (\\n) is a *blank* character or not
-  - Use ST method *stable_visit* in main program (freq.c)
 
 ### Tools
 

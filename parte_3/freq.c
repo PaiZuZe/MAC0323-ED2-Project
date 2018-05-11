@@ -10,30 +10,39 @@
 #include <string.h>
 #include <ctype.h>
 
-typedef struct bst_s
+typedef struct earray_s
 {
     char *key;
-    struct bst_s *left;
-    struct bst_s *right;
-} *Node;
+    int val;
+} *EntryArray;
+
+EntryArray entries;
+int entries_top;
+
+EntryArray earray_create (int n, int *count)
+{
+    EntryArray earr = emalloc (n*sizeof(struct earray_s));
+
+    *(count) = 0;
+    return earr;
+}
 
 /*
-    Inserts buffer content in BST
+    Stores entry in array
 */
-Node bst_insert (Node root, Buffer *buffer)
+int get_entry (const char *key, EntryData *data)
 {
-    if (root == NULL) {
-        root = emalloc (sizeof (struct bst_s));
-        root->key = strnclone (root->key, (char *) buffer->data, buffer->p);
-        root->left = NULL;
-        root->right = NULL;
-    }
-    else if (strcmp (buffer->data, root->key) < 0)
-        root->left = bst_insert (root->left, buffer);
-    else if (strcmp (buffer->data, root->key) > 0)
-        root->right = bst_insert (root->right, buffer);
+    entries[entries_top].key = strclone (entries[entries_top].key, key);
+    entries[entries_top++].val = data->i;
+    return 1;
+}
 
-    return root;
+/*
+    Compares entries keys
+*/
+int entry_compare (const void *a, const void *b)
+{
+    return strcmp (((EntryArray) a)->key, ((EntryArray) b)->key);
 }
 
 /*
@@ -48,32 +57,33 @@ InsertionResult safe_st_insert (SymbolTable table, Buffer *buffer)
 }
 
 /*
-    Traverse tree in-order, printing each key and its corresponding value in the
-    symbol table
+    Gets ST keys, visiting it with get_entry, and sorts them. Prints the sorted
+    keys specified
 */
-void print_keys (Node root, SymbolTable table, int max_word)
+void print_keys (SymbolTable table, int max_word)
 {
-    int count, spaces;
+    int spaces, n = entries_top, i;
 
-    if (root->left != NULL) print_keys (root->left, table, max_word);
+    entries = earray_create (n, &entries_top);
+    i = stable_visit (table, &get_entry);
+    qsort (entries, n, sizeof(struct earray_s), &entry_compare);
 
-    spaces = max_word - strlen (root->key);
-    count = (stable_find (table, root->key))->i;
-    printf ("%s ", root->key);
-    while (spaces > 0) {
-        putc (' ', stdout);
-        spaces--;
+    for (i = 0; i < entries_top; i++) {
+        spaces = max_word - strlen (entries[i].key);
+        printf ("%s ", entries[i].key);
+        while (spaces > 0) {
+            putc (' ', stdout);
+            spaces--;
+        }
+        printf ("%d\n", entries[i].val);
     }
-    printf ("%d\n", count);
-
-    if (root->right != NULL) print_keys (root->right, table, max_word);
 }
 
 /*
     Reads file and stores words on both symbol table and BST, keeping track of
     the length of the longest word.
 */
-void store_words (FILE *file, Node *root, SymbolTable *table, int *max_word)
+void store_words (FILE *file, SymbolTable *table, int *max_word)
 {
     Buffer *b;
     char c, in_word = 0;
@@ -94,7 +104,7 @@ void store_words (FILE *file, Node *root, SymbolTable *table, int *max_word)
             insertion = safe_st_insert (*(table), b);
             if (insertion.new) {
                 insertion.data->i = 1;
-                *(root) = bst_insert (*(root), b);
+                entries_top++;
             }
             else insertion.data->i++;
 
@@ -110,7 +120,7 @@ void store_words (FILE *file, Node *root, SymbolTable *table, int *max_word)
         insertion = safe_st_insert (*(table), b);
         if (insertion.new) {
             insertion.data->i = 1;
-            *(root) = bst_insert (*(root), b);
+            entries_top++;
         }
         else insertion.data->i++;
 
@@ -123,9 +133,9 @@ void store_words (FILE *file, Node *root, SymbolTable *table, int *max_word)
 
 int main (int argc, char **argv) {
     SymbolTable st;
-    Node tree = NULL;
     int max_word;
     FILE *input;
+    entries_top = 0;
 
     if (argc != 2) {
         fprintf (stderr, "ERROR: Expected 1 arguments.\n");
@@ -139,8 +149,8 @@ int main (int argc, char **argv) {
     }
 
     st = stable_create ();
-    store_words (input, &tree, &st, &max_word);
-    print_keys (tree, st, max_word);
+    store_words (input, &st, &max_word);
+    print_keys (st, max_word);
 
     stable_destroy (st);
     return 0;
