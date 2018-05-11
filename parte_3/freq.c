@@ -133,8 +133,8 @@ void store_words (FILE *file, SymbolTable *table, int *max_word)
 
 int main (int argc, char **argv) {
     SymbolTable st;
-    int max_word;
     FILE *input;
+    int max_word = -1;
     entries_top = 0;
 
     if (argc != 2) {
