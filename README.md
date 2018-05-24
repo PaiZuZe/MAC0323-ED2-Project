@@ -7,10 +7,15 @@ IME-USP
 
 * \[Done\] Part I: text justification in MACAL
 * \[Done\] Part II: generic buffer
+* \[Done\] Part III: symbol table
 
-+ Part III: symbol table
-  - \[Done\] Use ST method *stable_visit* in main program (freq.c)
-  - Decide whether the *newline* character (\\n) is a *blank* character or not
++ Part IV: MACAL parser
+  - Learn MACAL
+  - Figure headers out (asmtypes, optable, opcodes, mactypes)
+  - Change remove emalloc() from aux.\* (already in error.h)
+  - Fix stable.c (implement linear probing?)
+  - Write parser.c
+  - Write test program
 
 ### Tools
 

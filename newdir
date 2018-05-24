@@ -1,0 +1,15 @@
+#!/bin/bash
+
+TMP="templates/Makefile.template"
+PREFIX="part"
+NEW=$1
+
+if [ "$#" = "1" ]
+then
+    mkdir "$PREFIX$NEW"
+    mkdir "$PREFIX$NEW/test"
+    cp "$TMP" "$PREFIX$NEW/Makefile"
+else
+    echo "Usage: $0 <dir>"
+    echo "Prepares a part<dir> directory"
+fi

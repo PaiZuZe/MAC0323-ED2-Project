@@ -92,7 +92,7 @@ void store_words (FILE *file, SymbolTable *table, int *max_word)
     b = buffer_create (sizeof(char));
     c = fgetc (file);
     while (c != EOF) {
-        if (!isblank (c) && c != '\n') {
+        if (!isspace(c)) {
             if (!in_word) in_word = 1;
             buffer_push_char (b, c);
             b->p++;

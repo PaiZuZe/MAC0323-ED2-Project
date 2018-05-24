@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DIR="guilherme_vieira_gabriel_isomura_victor_araujo"
-TMP="test"
+IGNORE="test"
 BIN=$1
 
 if [ "$#" = "1" ]
@@ -16,7 +16,7 @@ then
             mkdir "$DIR"
             for j in $(ls "$i")
             do
-                if [ "$j" \!= "$TMP" ]
+                if [ "$j" \!= "$IGNORE" ]
                 then
                     cp -R "$i/$j" "$DIR"
                 fi
@@ -35,4 +35,3 @@ else
     echo "Usage: $0 <binary>"
     echo "Creates a .tar.gz containing the source code for the given binary"
 fi
-
