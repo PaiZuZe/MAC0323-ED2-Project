@@ -22,15 +22,24 @@ char **split_line(char *og_string) {
             buffer_reset(b);
         }
     }
-    if (!flag) words[count++] = estrdup((char *) b->data);
+    if (!flag && count != 0) words[count++] = estrdup((char *) b->data);
     buffer_destroy(b);
     return words;
 }
-/*
+
 int parse(const char *s, SymbolTable alias_table, Instruction **instr, const char **errptr) {
+    char **words = split_line(s);
+
+    // Se o terceiro for null, não tem label.
+    if (words[2] == NULL) {
+
+    }
+    else {
+        
+    }
     return 0;
 }
-*/
+
 
 int main() {
     char bob[] = "Ola meu amigo!!! *Elementar meu caro Watson";
