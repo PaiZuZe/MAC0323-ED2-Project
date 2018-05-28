@@ -6,17 +6,6 @@
 
 #include "aux.h"
 
-void *emalloc (size_t size)
-{
-    void *ptr = malloc (size);
-
-    if (ptr == NULL) {
-        fprintf (stderr, "Memory allocation error! (aux.c: emalloc)\n");
-        exit (1);
-    }
-    return ptr;
-}
-
 char *strclone (char *dest, const char *src)
 {
     size_t length;

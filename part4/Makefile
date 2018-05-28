@@ -7,7 +7,7 @@ RM := rm -f
 
 CFLAGS := -Wall -std=c99 -pedantic -O2 -Wextra
 
-BIN := freq
+BIN := parser
 SRC := $(wildcard *.c)
 OBJ := $(SRC:.c=.o)
 
@@ -29,4 +29,3 @@ $(OBJ): ${SRC}
 
 $(OUT):
 	mkdir ${OUT}
-
