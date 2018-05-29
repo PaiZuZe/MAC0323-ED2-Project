@@ -91,7 +91,6 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     if(words[0] == NULL) {
         return 1;
     }
-
     operat = optable_find(words[0]);
     //Se tem label, pode ser um IS, ou está colocando uma label em uma linha.
     if(operat == NULL) {
@@ -102,6 +101,7 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
         //imagina que é um label.
         label = estrdup(words[0]);
         get_arg_types(words, alias_table, arg_types, 2, errptr);
+        operat = optable_find(words[1]);
     }
 
     //Linha sem label, e com um operando que existe, precisa ver se tem os args certos.
@@ -139,18 +139,18 @@ int main() {
     SymbolTable ST = stable_create();
     InsertionResult bob;
 
-    bob = stable_insert(ST, "start");
-    if (bob.new) bob.data->opd = operand_create_label("blah");
 
-    //parse(words0, ST, instr, NULL);
-    //parse(words1, ST, instr, NULL);
+    parse(words0, ST, instr, NULL);
+    parse(words1, ST, instr, NULL);
     bob = stable_insert(ST, "a");
     if (bob.new) bob.data->opd = operand_create_register('2');
-    //parse(words2, ST, instr, NULL);
-    //parse(words3, ST, instr, NULL);
-    //parse(words4, ST, instr, NULL);
-    //parse(words5, ST, instr, NULL);
-    //parse(words6, ST, instr, NULL);
+    parse(words2, ST, instr, NULL);
+    bob = stable_insert(ST, "start");
+    if (bob.new) bob.data->opd = operand_create_label("blah");
+    parse(words3, ST, instr, NULL);
+    parse(words4, ST, instr, NULL);
+    parse(words5, ST, instr, NULL);
+    parse(words6, ST, instr, NULL);
 
     return 0;
 }
