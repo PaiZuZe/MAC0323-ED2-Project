@@ -35,10 +35,13 @@ char **split_line(const char *og_string) {
     buffer_destroy(b);
     return words;
 }
-
 int right_args(const Operator *operat, OperandType *types, const char **errptr) {
     for (int i = 0; i < 3; i++) {
-        if (operat->opd_types[i] != types[i]) {
+        if (types[i] == OP_NONE && operat->opd_types[i] != OP_NONE) {
+            printf("Deu um cara errado aqui\n");
+            return 0;
+        }
+        else if ((operat->opd_types[i] & types[i]) != types[i]) {
             //Errado isso, aprende a ler antes.
             //&errptr = estrdup("ERROR: Wrong operator type\n");
             printf("Deu um cara errado aqui\n");
@@ -69,11 +72,11 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
         else {
             for (unsigned int j = 0; j < strlen(words[i]); j++) {
                 //entrou aqui o manolo me mandou uma merda gigante.
-                if (!isdigit(words[i][j]) && words[i][0] != 'h') {
+                if (!isdigit(words[i][j])) {
                     return 0;
                 }
             }
-            //arg_types[i - init] = BYTE1;
+            //arg_types[i - init] = NUMBER_TYPE;
             arg_types[i - init] = IMMEDIATE;
         }
     }
@@ -114,7 +117,7 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     }
     //veio até aqui então ta tudo certo.
     *instr = instr_create(label, operat, opds);
-    *errptr = NULL;
+    //*errptr = NULL;
     return 1;
 }
 
@@ -133,24 +136,35 @@ int main() {
     char *words4 = "      JMP     start";
     //missing args
     char *words5 = "     DIV     a,2";
-    //wrong kind of arg.
     char *words6 = "MUL  a, $2,$3";
+
+    //wrong kind of arg.
+    char *words7 = "CALL start, 2,$3";
 
     SymbolTable ST = stable_create();
     InsertionResult bob;
 
 
     parse(words0, ST, instr, NULL);
+    printf("Deu bom para o 0\n");
     parse(words1, ST, instr, NULL);
+    printf("Deu bom para o 1\n");
     bob = stable_insert(ST, "a");
     if (bob.new) bob.data->opd = operand_create_register('2');
     parse(words2, ST, instr, NULL);
+    printf("Deu bom para o 2\n");
     bob = stable_insert(ST, "start");
     if (bob.new) bob.data->opd = operand_create_label("blah");
     parse(words3, ST, instr, NULL);
+    printf("Deu bom para o 3\n");
     parse(words4, ST, instr, NULL);
+    printf("Deu bom para o 4\n");
     parse(words5, ST, instr, NULL);
+    printf("Deu bom para o 5\n");
     parse(words6, ST, instr, NULL);
+    printf("Deu bom para o 6\n");
+    parse(words7, ST, instr, NULL);
+    printf("Deu bom para o 7\n");
 
     return 0;
 }
