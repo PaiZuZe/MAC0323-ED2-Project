@@ -49,30 +49,31 @@ int right_args(const Operator *operat, OperandType *types, const char **errptr) 
     return 1;
 }
 
-int get_arg_types(char **words, SymbolTable stable_find, OperandType *arg_types, int init, const char **errptr) {
+int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
+                  int init, const char **errptr) {
     EntryData *data;
 
     for (int i = init; i < 3 + init; i++) {
         //Não tem esse arg, manda um OP_NONE.
         if (words[i] == NULL) arg_types[i - init] = OP_NONE;
 
-        //se tem um $ é um REGISTER,
+        //se tem um $ é um REGISTER.
         else if (words[i][0] == '$') arg_types[i - init] = REGISTER;
 
-        data = stable_find(stable_find, words[0]);
         //Esta na s_table
-        else if (data != NULL) {
-            //faz algum voodoo para ver o tipo.
-        }
+        // SUPONDO QUE O RESULTADO DA FIND É SEMPRE UM operador
+        else if ((data = stable_find(alias_table, words[0])) != NULL)
+            arg_types[i - init] = data->opd->type;
 
-        //Ou é um IMMEDIATE (bagulho de um byte ou um REGISTER) ou é um treco muito errado;
+        //Ou é um IMMEDIATE (bagulho de um byte ou um REGISTER) ou é um treco muito errado.
         else {
             for (unsigned int j = 0; j < strlen(words[i]); j++) {
                 //entrou aqui o manolo me mandou uma merda gigante.
-                if (!isdigit(words[i][j])) {
+                if (!isdigit(words[i][j]) && words[i][0] != 'h') {
                     return 0;
                 }
             }
+            //arg_types[i - init] = BYTE1;
             arg_types[i - init] = IMMEDIATE;
         }
     }
@@ -92,10 +93,12 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     }
 
     operat = optable_find(words[0]);
-    //Linha com label ou o operando não existe (como diferenciar ???) :(
     //Se tem label, pode ser um IS, ou está colocando uma label em uma linha.
-    //De qualquer jeito precisa colocar na alias_table.
     if(operat == NULL) {
+        //se o prox cara não for um operador, deu ruim.
+        if (words[1] != NULL && optable_find(words[1]) == NULL) {
+            return 0;
+        }
         //imagina que é um label.
         label = estrdup(words[0]);
         get_arg_types(words, alias_table, arg_types, 2, errptr);
@@ -117,53 +120,37 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
 
 
 int main() {
-    char **words = split_line("start  ADD   a , a , 1 *Ola meu amigo");
-    if (words[0] != NULL && optable_find(words[0]) == NULL)
-        printf("Tem não meu irmão0\n");
-    else if (words[0] != NULL) {
-        OperandType bob[3] = {REGISTER, REGISTER, IMMEDIATE};
-        right_args(optable_find(words[0]), bob, NULL);
-    }
-    char **words1 = split_line("MUL  a, $2,$3");
-    if (words1[0] != NULL && optable_find(words1[0]) == NULL)
-        printf("Tem não meu irmão1\n");
-    else if (words1[0] != NULL) {
-        OperandType bob1[3] = {REGISTER, REGISTER, IMMEDIATE};
-        right_args(optable_find(words1[0]), bob1, NULL);
-    }
-    char **words2 = split_line("a      IS      $0");
-    if (words2[0] != NULL && optable_find(words2[0]) == NULL)
-        printf("Tem não meu irmão2\n");
-    else if (words2[0] != NULL) {
-        OperandType bob2[1] = {REGISTER};
-        right_args(optable_find(words2[0]), bob2, NULL);
-    }
-    char **words3 = split_line("");
-    if (words3[0] != NULL && optable_find(words3[0]) == NULL)
-        printf("Tem não meu irmão3\n");
-    else if (words3[0] != NULL) {
-        right_args(optable_find(words3[0]), NULL, NULL);
-    }
-    char **words4 = split_line("      ");
-    if (words4[0] != NULL && optable_find(words4[0]) == NULL)
-        printf("Tem não meu irmão4\n");
-    else if (words4[0] != NULL) {
-        right_args(optable_find(words4[0]), NULL, NULL);
-    }
-    char **words5 = split_line("*OLA MEU CARO");
-    if (words5[0] != NULL && optable_find(words5[0]) == NULL)
-        printf("Tem não meu irmão5\n");
-    else if (words5[0] != NULL) {
-        right_args(optable_find(words5[0]), NULL, NULL);
-    }
-    char **words6 = split_line("MUL  a, $2,$3");
-    if (words6[0] != NULL && optable_find(words6[0]) == NULL)
-        printf("Tem não meu irmão6\n");
-    else if (words6[0] != NULL) {
-        OperandType bob6[3] = {REGISTER, IMMEDIATE, IMMEDIATE};
-        right_args(optable_find(words6[0]), bob6, NULL);
-    }
+    Instruction **instr = emalloc(sizeof(Instruction *));
+    //test only comment
+    char *words0 = "* Teste";
+    //test adding label
+    char *words1 = "a      IS      $0";
+    //test working with two label
+    char *words2 = "start  ADD     a,a,1";
+    //test one label and comment
+    char *words3 = "       MUL     a,$2,$3     * Multiplica.";
+    //just label
+    char *words4 = "      JMP     start";
+    //missing args
+    char *words5 = "     DIV     a,2";
+    //wrong kind of arg.
+    char *words6 = "MUL  a, $2,$3";
 
-    //parse(NULL, NULL, NULL, NULL);
+    SymbolTable ST = stable_create();
+    InsertionResult bob;
+
+    bob = stable_insert(ST, "start");
+    if (bob.new) bob.data->opd = operand_create_label("blah");
+
+    //parse(words0, ST, instr, NULL);
+    //parse(words1, ST, instr, NULL);
+    bob = stable_insert(ST, "a");
+    if (bob.new) bob.data->opd = operand_create_register('2');
+    //parse(words2, ST, instr, NULL);
+    //parse(words3, ST, instr, NULL);
+    //parse(words4, ST, instr, NULL);
+    //parse(words5, ST, instr, NULL);
+    //parse(words6, ST, instr, NULL);
+
     return 0;
 }
