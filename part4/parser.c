@@ -73,11 +73,12 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
             for (unsigned int j = 0; j < strlen(words[i]); j++) {
                 //entrou aqui o manolo me mandou uma merda gigante.
                 if (!isdigit(words[i][j])) {
+                    printf("O monalo passou algo muito estranho\n");
                     return 0;
                 }
             }
-            //arg_types[i - init] = NUMBER_TYPE;
-            arg_types[i - init] = IMMEDIATE;
+            arg_types[i - init] = BYTE1;
+            //arg_types[i - init] = IMMEDIATE;
         }
     }
     return 1;
@@ -99,6 +100,7 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     if(operat == NULL) {
         //se o prox cara não for um operador, deu ruim.
         if (words[1] != NULL && optable_find(words[1]) == NULL) {
+            printf("Deu ruim com os oprat\n");
             return 0;
         }
         //imagina que é um label.
@@ -113,6 +115,7 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     }
     //Entrou aqui então ou o nArgs ou os tipos estão errados.
     if (!right_args(operat, arg_types, errptr)) {
+        printf("Os args deu ruim\n");
         return 0;
     }
     //veio até aqui então ta tudo certo.
