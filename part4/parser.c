@@ -38,13 +38,13 @@ char **split_line(const char *og_string) {
 int right_args(const Operator *operat, OperandType *types, const char **errptr) {
     for (int i = 0; i < 3; i++) {
         if (types[i] == OP_NONE && operat->opd_types[i] != OP_NONE) {
-            printf("Deu um cara errado aqui\n");
+            printf("Arg de tipo invalido e um %d era para ser um %d, e foi o %d\n", types[i], operat->opd_types[i], i);
             return 0;
         }
         else if ((operat->opd_types[i] & types[i]) != types[i]) {
             //Errado isso, aprende a ler antes.
             //&errptr = estrdup("ERROR: Wrong operator type\n");
-            printf("Deu um cara errado aqui\n");
+            printf("Arg de tipo invalido e um %d era para ser um %d, e foi o %d\n", types[i], operat->opd_types[i], i);
             return 0;
         }
     }
@@ -65,7 +65,7 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 
         //Esta na s_table
         // SUPONDO QUE O RESULTADO DA FIND É SEMPRE UM operador
-        else if ((data = stable_find(alias_table, words[0])) != NULL)
+        else if ((data = stable_find(alias_table, words[i])) != NULL)
             arg_types[i - init] = data->opd->type;
 
         //Ou é um IMMEDIATE (bagulho de um byte ou um REGISTER) ou é um treco muito errado.
@@ -144,25 +144,32 @@ int main() {
     SymbolTable ST = stable_create();
     InsertionResult bob;
 
-
+    printf("Testando o 0\n");
     parse(words0, ST, instr, NULL);
     printf("Deu bom para o 0\n");
+    printf("Testando o 1\n");
     parse(words1, ST, instr, NULL);
     printf("Deu bom para o 1\n");
     bob = stable_insert(ST, "a");
     if (bob.new) bob.data->opd = operand_create_register('2');
+    printf("Testando o 2\n");
     parse(words2, ST, instr, NULL);
     printf("Deu bom para o 2\n");
     bob = stable_insert(ST, "start");
     if (bob.new) bob.data->opd = operand_create_label("blah");
+    printf("Testando o 3\n");
     parse(words3, ST, instr, NULL);
     printf("Deu bom para o 3\n");
+    printf("Testando o 4\n");
     parse(words4, ST, instr, NULL);
     printf("Deu bom para o 4\n");
+    printf("Testando o 5\n");
     parse(words5, ST, instr, NULL);
     printf("Deu bom para o 5\n");
+    printf("Testando o 6\n");
     parse(words6, ST, instr, NULL);
     printf("Deu bom para o 6\n");
+    printf("Testando o 7\n");
     parse(words7, ST, instr, NULL);
     printf("Deu bom para o 7\n");
 
