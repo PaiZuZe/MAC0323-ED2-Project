@@ -47,14 +47,14 @@ int right_args(const Operator *operat, OperandType *types, const char **errptr, 
     for (int i = 0; i < 3; i++) {
         if (types[i] == OP_NONE && operat->opd_types[i] != OP_NONE) {
             *errptr = str_ptrs[i+init];
-            set_error_msg("expected operand\n");
+            set_error_msg("expected operand");
             return 0;
         }
         else if ((operat->opd_types[i] & types[i]) != types[i]) {
             //Errado isso, aprende a ler antes.
             //&errptr = estrdup("ERROR: Wrong operator type\n");
             *errptr = str_ptrs[i+init];
-            set_error_msg("wrong operand type\n");
+            set_error_msg("wrong operand type");
             return 0;
         }
     }
@@ -150,7 +150,9 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     return 1;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    set_prog_name(argv[0]);
+
     Instruction **instr = emalloc(sizeof(Instruction *));
     const char **errptr = emalloc(sizeof(char *));
     //test only comment
@@ -174,33 +176,49 @@ int main() {
     InsertionResult bob;
 
     printf("Testando o 0\n");
-    parse(words0, ST, instr, errptr);
-    printf("Deu bom para o 0\n");
+    if (parse(words0, ST, instr, errptr) == 0)
+        print_error_msg(NULL);
+    else
+        printf("Deu bom para o 0\n");
     printf("Testando o 1\n");
-    parse(words1, ST, instr, errptr);
-    printf("Deu bom para o 1\n");
+    if (parse(words1, ST, instr, errptr) == 0)
+        print_error_msg(NULL);
+    else
+        printf("Deu bom para o 1\n");
     bob = stable_insert(ST, "a");
     if (bob.new) bob.data->opd = operand_create_register('2');
     printf("Testando o 2\n");
-    parse(words2, ST, instr, errptr);
-    printf("Deu bom para o 2\n");
+    if (parse(words2, ST, instr, errptr) == 0)
+        print_error_msg(NULL);
+    else
+        printf("Deu bom para o 2\n");
     bob = stable_insert(ST, "start");
     if (bob.new) bob.data->opd = operand_create_label("blah");
     printf("Testando o 3\n");
-    parse(words3, ST, instr, errptr);
-    printf("Deu bom para o 3\n");
+    if (parse(words3, ST, instr, errptr) == 0)
+        print_error_msg(NULL);
+    else
+        printf("Deu bom para o 3\n");
     printf("Testando o 4\n");
-    parse(words4, ST, instr, errptr);
-    printf("Deu bom para o 4\n");
+    if (parse(words4, ST, instr, errptr) == 0)
+        print_error_msg(NULL);
+    else
+        printf("Deu bom para o 4\n");
     printf("Testando o 5\n");
-    parse(words5, ST, instr, errptr);
-    printf("Deu bom para o 5\n");
+    if (parse(words5, ST, instr, errptr) == 0)
+        print_error_msg(NULL);
+    else
+        printf("Deu bom para o 5\n");
     printf("Testando o 6\n");
-    parse(words6, ST, instr, errptr);
-    printf("Deu bom para o 6\n");
+    if (parse(words6, ST, instr, errptr) == 0)
+        print_error_msg(NULL);
+    else
+        printf("Deu bom para o 6\n");
     printf("Testando o 7\n");
-    parse(words7, ST, instr, errptr);
-    printf("Deu bom para o 7\n");
+    if (parse(words7, ST, instr, errptr) == 0)
+        print_error_msg(NULL);
+    else
+        printf("Deu bom para o 7\n");
 
     return 0;
 }
