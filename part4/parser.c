@@ -168,6 +168,7 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     return 1;
 }
 
+/*
 int main(int argc, char *argv[]) {
     set_prog_name(argv[0]);
 
@@ -239,4 +240,4 @@ int main(int argc, char *argv[]) {
         printf("Deu bom para o 7\n");
 
     return 0;
-}
+} */

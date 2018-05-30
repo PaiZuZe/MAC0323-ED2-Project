@@ -10,11 +10,8 @@ IME-USP
 * \[Done\] Part III: symbol table
 
 + Part IV: MACAL parser
-  - Learn MACAL
-  - Figure headers out (asmtypes, optable, opcodes, mactypes)
-  - Change remove emalloc() from aux.\* (already in error.h)
-  - Fix stable.c (implement linear probing?)
-  - Write parser.c
+  - Properly check if label is valid
+  - Figure errptr (hitherto foggy specification)
   - Write test program
 
 ### Tools
