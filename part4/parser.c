@@ -67,7 +67,7 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 
     for (int i = init; i < 3 + init; i++) {
         // se entrou nesse if, já apareceu um operador e o label tem o msm nome de operando
-        if (optable_find(words[i]) != NULL) {
+        if (words[i] != NULL && optable_find(words[i]) != NULL) {
             *errptr = str_ptrs[i];
             set_error_msg("label has the same name as an operand");
             return 0;
@@ -133,14 +133,14 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
             return 0;
         }
         //Vê se o rotulo e valido.
-        if (words[0][0] != '_' || !isalpha(words[0][0])) {
+        if (words[0][0] != '_' && !isalpha(words[0][0])) {
             set_error_msg("invalid label");
             *errptr = str_ptrs[0];
             return 0;
         }
         else
             for (unsigned int i = 1; i < strlen(words[0]); i++)
-                if (words[0][i] != '_' || !isalnum(words[0][i])) {
+                if (words[0][i] != '_' && !isalnum(words[0][i])) {
                     set_error_msg("invalid label");
                     *errptr = str_ptrs[0];
                     return 0;
