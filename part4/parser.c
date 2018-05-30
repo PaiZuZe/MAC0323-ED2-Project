@@ -66,6 +66,12 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
     EntryData *data;
 
     for (int i = init; i < 3 + init; i++) {
+        // se entrou nesse if, já apareceu um operador e o label tem o msm nome de operando
+        if (optable_find(words[i]) != NULL) {
+            *errptr = str_ptrs[i];
+            set_error_msg("label has the same name as an operand");
+            return 0;
+        }
         //Não tem esse arg, manda um OP_NONE.
         if (words[i] == NULL) arg_types[i - init] = OP_NONE;
 
@@ -123,10 +129,22 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
         //se o prox cara não for um operador, deu ruim.
         if (words[1] != NULL && optable_find(words[1]) == NULL) {
             *errptr = str_ptrs[0];
-            set_error_msg("expected operator\n");
+            set_error_msg("expected operator");
             return 0;
         }
-        //imagina que é um label.
+        //Vê se o rotulo e valido.
+        if (words[0][0] != '_' || !isalpha(words[0][0])) {
+            set_error_msg("invalid label");
+            *errptr = str_ptrs[0];
+            return 0;
+        }
+        else
+            for (unsigned int i = 1; i < strlen(words[0]); i++)
+                if (words[0][i] != '_' || !isalnum(words[0][i])) {
+                    set_error_msg("invalid label");
+                    *errptr = str_ptrs[0];
+                    return 0;
+                }
         init = 2;
         label = estrdup(words[0]);
         get_arg_types(words, alias_table, arg_types, init, errptr, str_ptrs);
