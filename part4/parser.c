@@ -2,9 +2,11 @@
 #include "buffer.h"
 #include "optable.h"
 
-char **split_line(const char *og_string) {
+char **split_line(const char *og_string, const char**str_ptrs) {
     int count = 0;
+    int str_ptrs_counter = 0;
     int is_comment = 0;
+    int new_word = 1;
     char **words = emalloc(sizeof(char *) * 5);
     Buffer *b = buffer_create(sizeof(char));
 
@@ -17,6 +19,10 @@ char **split_line(const char *og_string) {
             break;
         }
         if (!isspace(og_string[i]) && og_string[i] != ',') {
+            if (new_word) {
+                new_word = 0;
+                str_ptrs[str_ptrs_counter++] = &og_string[i];
+            }
             buffer_push_char(b, og_string[i]);
             b->p += 1;
         }
@@ -25,6 +31,7 @@ char **split_line(const char *og_string) {
             b->p += 1;
             words[count++] = estrdup((char *) b->data);
             buffer_reset(b);
+            new_word = 1;
         }
     }
     if (!is_comment && count != 0) {
@@ -35,25 +42,27 @@ char **split_line(const char *og_string) {
     buffer_destroy(b);
     return words;
 }
-int right_args(const Operator *operat, OperandType *types, const char **errptr) {
+
+int right_args(const Operator *operat, OperandType *types, const char **errptr, int init, char const **str_ptrs) {
     for (int i = 0; i < 3; i++) {
         if (types[i] == OP_NONE && operat->opd_types[i] != OP_NONE) {
-            printf("Arg de tipo invalido e um %d era para ser um %d, e foi o %d\n", types[i], operat->opd_types[i], i);
+            *errptr = str_ptrs[i+init];
+            set_error_msg("expected operand\n");
             return 0;
         }
         else if ((operat->opd_types[i] & types[i]) != types[i]) {
             //Errado isso, aprende a ler antes.
             //&errptr = estrdup("ERROR: Wrong operator type\n");
-            printf("Arg de tipo invalido e um %d era para ser um %d, e foi o %d\n", types[i], operat->opd_types[i], i);
+            *errptr = str_ptrs[i+init];
+            set_error_msg("wrong operand type\n");
             return 0;
         }
     }
-    printf("Deu tudo bom\n");
     return 1;
 }
 
 int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
-                  int init, const char **errptr) {
+                  int init, const char **errptr, char const **str_ptrs) {
     EntryData *data;
 
     for (int i = init; i < 3 + init; i++) {
@@ -73,7 +82,8 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
             for (unsigned int j = 0; j < strlen(words[i]); j++) {
                 //entrou aqui o manolo me mandou uma merda gigante.
                 if (!isdigit(words[i][j])) {
-                    printf("O monalo passou algo muito estranho\n");
+                    *errptr = str_ptrs[i];
+                    set_error_msg("expected label, register or number");
                     return 0;
                 }
             }
@@ -83,8 +93,21 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
     return 1;
 }
 
+void operands_create(Operand **opds, OperandType *arg_types, char **words, int init) {
+    for (int i = init; i < 3 + init; i++) {
+        if (arg_types[i] == OP_NONE) return;
+        else if ((arg_types[i] & REGISTER) == REGISTER) opds[i] = operand_create_register(words[i][1]);
+        //AQUI PODE DAR RUIM
+        else if ((arg_types[i] & NUMBER_TYPE) == BYTE1) opds[i] = operand_create_number((octa) words[i]);
+        else if ((arg_types[i] & LABEL) == LABEL) opds[i] = operand_create_label(words[i]);
+        else if ((arg_types[i] & STRING) == STRING) opds[i] = operand_create_string(words[i]);
+    }
+}
+
 int parse(const char *s, SymbolTable alias_table, Instruction **instr, const char **errptr) {
-    char **words = split_line(s);
+    int init = 1;
+    const char **str_ptrs = emalloc(sizeof(char *) * 5);
+    char **words = split_line(s, str_ptrs);
     char *label = NULL;
     const Operator *operat = NULL;
     OperandType arg_types[3] = {OP_NONE, OP_NONE, OP_NONE};
@@ -99,36 +122,37 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     if(operat == NULL) {
         //se o prox cara não for um operador, deu ruim.
         if (words[1] != NULL && optable_find(words[1]) == NULL) {
-            printf("Deu ruim com os oprat\n");
+            *errptr = str_ptrs[0];
+            set_error_msg("expected operator\n");
             return 0;
         }
         //imagina que é um label.
+        init = 2;
         label = estrdup(words[0]);
-        get_arg_types(words, alias_table, arg_types, 2, errptr);
+        get_arg_types(words, alias_table, arg_types, init, errptr, str_ptrs);
+        operands_create(opds, arg_types, words, init);
         operat = optable_find(words[1]);
     }
 
     //Linha sem label, e com um operando que existe, precisa ver se tem os args certos.
     else {
-        get_arg_types(words, alias_table, arg_types, 1, errptr);
+        get_arg_types(words, alias_table, arg_types, 1, errptr, str_ptrs);
+        operands_create(opds, arg_types, words, 1);
     }
     //Entrou aqui então ou o nArgs ou os tipos estão errados.
-    if (!right_args(operat, arg_types, errptr)) {
-        printf("Os args deu ruim\n");
+    if (!right_args(operat, arg_types, errptr, init, str_ptrs))
         return 0;
-    }
+
     //veio até aqui então ta tudo certo.
     *instr = instr_create(label, operat, opds);
     *errptr = NULL;
-    
+
     return 1;
 }
-
 
 int main() {
     Instruction **instr = emalloc(sizeof(Instruction *));
     const char **errptr = emalloc(sizeof(char *));
-
     //test only comment
     char *words0 = "* Teste";
     //test adding label
