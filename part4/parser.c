@@ -30,14 +30,17 @@ char **split_line(const char *str, const char **words_ptrs)
     char **words = emalloc(sizeof(char *) * 5);
     Buffer *b = buffer_create(sizeof(char));
 
-    for (int i = 0; i < MAX_NUM_WORDS; i++) words[i] = '\0'; // Adding '\0' to every word.
+    // Adding '\0' to every word.
+    for (int i = 0; i < MAX_NUM_WORDS; i++) words[i] = '\0';
 
     // Breaking str into words and storing them in the words vector.
     for (unsigned int i = 0; i < strlen(str); i++) {
-        if (str[i] == '*') // The rest of the str is a comment.
+        // The rest of the str is a comment.
+        if (str[i] == '*')
             break;
 
-        if (!isspace(str[i]) && str[i] != ',') { // str[i] belongs to a word
+        // str[i] belongs to a word
+        if (!isspace(str[i]) && str[i] != ',') {
             if (new_word) {
                 new_word = false;
                 words_ptrs[count] = &str[i];
@@ -54,7 +57,8 @@ char **split_line(const char *str, const char **words_ptrs)
             buffer_reset(b);
         }
     }
-    if (count != 0) { // Add the last word in the words vector.
+    // Add the last word in the words vector.
+    if (count != 0) {
         buffer_push_char(b, '\0');
         b->p += 1;
         words[count++] = estrdup((char *) b->data);
@@ -134,9 +138,7 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
     return 1;
 }
 
-/*
- * Creates the operands in opds.
- */
+// Creates the operands in opds.
 void operands_create(Operand **opds, OperandType *arg_types, char **words, int init)
 {
     for (int i = init; i < MAX_NUM_OPERANDS + init; i++) {
@@ -170,11 +172,13 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     OperandType arg_types[3] = {OP_NONE, OP_NONE, OP_NONE};
     Operand *opds[3] = {NULL, NULL, NULL};
 
-    if (words[0] == NULL) // Empty line.
+    // Empty line.
+    if (words[0] == NULL)
         return 1;
 
     op = optable_find(words[0]);
-    if (op == NULL) { // There is a label.
+    // There is a label.
+    if (op == NULL) {
         // The next one must be an operator in order to succed the parsing.
         if (words[1] != NULL && optable_find(words[1]) == NULL) {
             if (words_ptrs[1] == NULL)
@@ -201,14 +205,16 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
         operands_create(opds, arg_types, words, init);
         op = optable_find(words[1]);
     }
-    else { // There is no label but there is an operator.
+    // There is no label but there is an operator.
+    else {
         get_arg_types(words, alias_table, arg_types, 1, errptr, words_ptrs);
         operands_create(opds, arg_types, words, 1);
     }
     // The number of arguments or the types are wrong.
     if (!right_args(s, op, arg_types, errptr, init, words_ptrs))
         return 0;
-    *instr = instr_create(label, op, opds); // Creates the instruction.
+    // Creates the instruction.
+    *instr = instr_create(label, op, opds);
 
     return 1;
 }
