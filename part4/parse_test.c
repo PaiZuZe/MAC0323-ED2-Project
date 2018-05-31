@@ -145,7 +145,7 @@ int main (int argc, char **argv)
 
     SymbolTable ST = stable_create();
     InsertionResult bob;
-
+    
     printf("====================================================================================\n");
     printf("Testando o 0\n");
     if (parse(words0, ST, instr, errptr) == 0)
@@ -176,7 +176,6 @@ int main (int argc, char **argv)
 
     *errptr = NULL;
     printf("\n\n");
-
 
     printf("====================================================================================\n");
     bob = stable_insert(ST, "a");
@@ -276,8 +275,6 @@ printf("========================================================================
 
     printf("Testando o 8\n");
 
-    int j = 0;
-    while (words8[j] != '\0') j++;
     if (parse(words8, ST, instr, errptr) == 0)
         print_error_msg(NULL);
     else

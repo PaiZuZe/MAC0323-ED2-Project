@@ -8,10 +8,7 @@
 #define __PARSER_H__
 
 #include "stable.h"
-#include "error.h"
 #include "asmtypes.h"
-#include <ctype.h>
-#include <string.h>
 
 /*
   Return instruction corresponding to assembly language line.

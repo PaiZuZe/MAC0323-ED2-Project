@@ -1,64 +1,84 @@
+/*
+    Guilherme Costa Vieira               9790930
+    Gabriel Kazuyuki Isomura             9793673
+    Victor Chiaradia Gramuglia Araujo    9793756
+*/
+
 #include "parser.h"
+#include "error.h"
 #include "buffer.h"
 #include "optable.h"
+#include <ctype.h>
+#include <string.h>
 
-/* Receives a const string str and a char
- *
+typedef int bool;
+#define true 1
+#define false 0
+
+#define MAX_NUM_WORDS 5 // A macal instruction will have 5 words at maximum.
+#define MAX_NUM_OPERANDS 3 // A macal operator will have 3 operands at maximum.
+
+/*
+ * Receives a const string str and a char **words_ptrs, which is a vector of
+ * pointers to the first letter of every word in the string str. Returns a
+ * vector of each word in str (str is not modified).
  */
-char **split_line(const char *og_string, const char **str_ptrs) {
+char **split_line(const char *str, const char **words_ptrs)
+{
     int count = 0;
-    int str_ptrs_counter = 0;
-    int is_comment = 0;
-    int new_word = 1;
+    bool new_word = true;
     char **words = emalloc(sizeof(char *) * 5);
     Buffer *b = buffer_create(sizeof(char));
 
-    // colocando \0 no começo de todas as palavras
-    for (int i = 0; i < 5; i++) words[i] = '\0';
+    for (int i = 0; i < MAX_NUM_WORDS; i++) words[i] = '\0'; // Adding '\0' to every word.
 
-    for (unsigned int i = 0; i < strlen(og_string); i++) {
-        if (og_string[i] == '*') {
-            is_comment = 1;
+    // Breaking str into words and storing them in the words vector.
+    for (unsigned int i = 0; i < strlen(str); i++) {
+        if (str[i] == '*') // The rest of the str is a comment.
             break;
-        }
-        if (!isspace(og_string[i]) && og_string[i] != ',') {
+
+        if (!isspace(str[i]) && str[i] != ',') { // str[i] belongs to a word
             if (new_word) {
-                new_word = 0;
-                str_ptrs[str_ptrs_counter++] = &og_string[i];
+                new_word = false;
+                words_ptrs[count] = &str[i];
             }
-            buffer_push_char(b, og_string[i]);
+            buffer_push_char(b, str[i]);
             b->p += 1;
         }
-        else if (b->p != 0){ //b->p != 0, buffer não está vazio
+        // It is the end of a word if the buffer is not empty.
+        else if (b->p != 0) {
             buffer_push_char(b, '\0');
             b->p += 1;
             words[count++] = estrdup((char *) b->data);
+            new_word = true;
             buffer_reset(b);
-            new_word = 1;
         }
     }
-    if (!is_comment && count != 0) {
+    if (count != 0) { // Add the last word in the words vector.
         buffer_push_char(b, '\0');
         b->p += 1;
         words[count++] = estrdup((char *) b->data);
     }
     buffer_destroy(b);
+
     return words;
 }
 
-int right_args(const char *s, const Operator *operat, OperandType *types, const char **errptr, int init, char const **str_ptrs) {
-    for (int i = 0; i < 3; i++) {
-        if (types[i] == OP_NONE && operat->opd_types[i] != OP_NONE) {
-            int j = 0;
-            while (s[j] != '\0') j++;
-            *errptr = &s[j];
+/*
+ * Returns 1 if the the types in types matches with the Operator *op types,
+ * returns 0 otherwise. *errptr is set is set before returning 0.
+ */
+int right_args(const char *s, const Operator *op, OperandType *types,
+               const char **errptr, int init, char const **words_ptrs)
+{
+    for (int i = 0; i < MAX_NUM_OPERANDS; i++) {
+        if (types[i] == OP_NONE && op->opd_types[i] != OP_NONE) {
+            *errptr = &s[strlen(s)];
             set_error_msg("expected operand");
             return 0;
         }
-        else if ((operat->opd_types[i] & types[i]) != types[i]) {
-            //Errado isso, aprende a ler antes.
-            //&errptr = estrdup("ERROR: Wrong operator type\n");
-            *errptr = str_ptrs[i+init];
+        else if ((op->opd_types[i] & types[i]) != types[i]) {
+            *errptr = words_ptrs[i+init];
             set_error_msg("wrong operand type");
             return 0;
         }
@@ -66,34 +86,44 @@ int right_args(const char *s, const Operator *operat, OperandType *types, const 
     return 1;
 }
 
+/*
+ * Returns 1 if it could get the types of the words in the instruction and 0
+ * otherwise.
+ */
 int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
-                  int init, const char **errptr, char const **str_ptrs) {
+                  int init, const char **errptr, char const **words_ptrs)
+{
     EntryData *data;
 
-    for (int i = init; i < 3 + init; i++) {
-        // se entrou nesse if, já apareceu um operador e o label tem o msm nome de operando
+    // Goes through every word that is an operand and get their types.
+    for (int i = init; i < MAX_NUM_OPERANDS + init; i++) {
+        /* One operand has already appeared and the label has the same
+         * name of a operand.
+         */
         if (words[i] != NULL && optable_find(words[i]) != NULL) {
-            *errptr = str_ptrs[i];
+            *errptr = words_ptrs[i];
             set_error_msg("label has the same name as an operand");
             return 0;
         }
-        //Não tem esse arg, manda um OP_NONE.
+        // Argument does not exist, so we set its type to OP_NONE.
         if (words[i] == NULL) arg_types[i - init] = OP_NONE;
 
-        //se tem um $ é um REGISTER.
+        // If it has a '$', then it is a register.
         else if (words[i][0] == '$') arg_types[i - init] = REGISTER;
 
-        //Esta na s_table
-        // SUPONDO QUE O RESULTADO DA FIND É SEMPRE UM operador
+        // The label is in the s_table.
         else if ((data = stable_find(alias_table, words[i])) != NULL)
             arg_types[i - init] = data->opd->type;
 
-        //Ou é um IMMEDIATE (bagulho de um byte ou um REGISTER) ou é um treco muito errado.
+        // It may be an IMMEDIATE.
         else {
+            /*
+             * Iterates through a word to see if it is a number. If it is not
+             * then we could not find a type for that word.
+             */
             for (unsigned int j = 0; j < strlen(words[i]); j++) {
-                //entrou aqui o manolo me mandou uma merda gigante.
                 if (!isdigit(words[i][j])) {
-                    *errptr = str_ptrs[i];
+                    *errptr = words_ptrs[i];
                     set_error_msg("expected label, register or number");
                     return 0;
                 }
@@ -104,76 +134,81 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
     return 1;
 }
 
-void operands_create(Operand **opds, OperandType *arg_types, char **words, int init) {
-    for (int i = init; i < 3 + init; i++) {
+/*
+ * Creates the operands in opds.
+ */
+void operands_create(Operand **opds, OperandType *arg_types, char **words, int init)
+{
+    for (int i = init; i < MAX_NUM_OPERANDS + init; i++) {
         if (arg_types[i] == OP_NONE) return;
-        else if ((arg_types[i] & REGISTER) == REGISTER) opds[i] = operand_create_register(words[i][1]);
-        //AQUI PODE DAR RUIM
-        else if ((arg_types[i] & NUMBER_TYPE) == BYTE1) opds[i] = operand_create_number((octa) words[i]);
-        else if ((arg_types[i] & LABEL) == LABEL) opds[i] = operand_create_label(words[i]);
-        else if ((arg_types[i] & STRING) == STRING) opds[i] = operand_create_string(words[i]);
+
+        else if ((arg_types[i] & REGISTER) == REGISTER)
+            opds[i] = operand_create_register(words[i][1]);
+
+        else if ((arg_types[i] & NUMBER_TYPE) == BYTE1)
+            opds[i] = operand_create_number((octa) words[i]);
+
+        else if ((arg_types[i] & LABEL) == LABEL)
+            opds[i] = operand_create_label(words[i]);
+
+        else if ((arg_types[i] & STRING) == STRING)
+            opds[i] = operand_create_string(words[i]);
     }
 }
 
-int parse(const char *s, SymbolTable alias_table, Instruction **instr, const char **errptr) {
+/*
+ * Breaks the instruction of assembler language in its parts: label operator
+ * and operands. Returns 1 if it succeds or 0 otherwise.
+ */
+int parse(const char *s, SymbolTable alias_table, Instruction **instr, const char **errptr)
+{
     int init = 1;
-    const char **str_ptrs = emalloc(sizeof(char *) * 5);
-    char **words = split_line(s, str_ptrs);
     char *label = NULL;
-    const Operator *operat = NULL;
+    const Operator *op = NULL;
+    const char **words_ptrs = emalloc(sizeof(char *) * MAX_NUM_WORDS);
+    char **words = split_line(s, words_ptrs);
     OperandType arg_types[3] = {OP_NONE, OP_NONE, OP_NONE};
     Operand *opds[3] = {NULL, NULL, NULL};
 
-    //Linha vazia.
-    if(words[0] == NULL) {
+    if (words[0] == NULL) // Empty line.
         return 1;
-    }
-    operat = optable_find(words[0]);
-    //Se tem label, pode ser um IS, ou está colocando uma label em uma linha.
-    if(operat == NULL) {
-        //se o prox cara não for um operador, deu ruim.
+
+    op = optable_find(words[0]);
+    if (op == NULL) { // There is a label.
+        // The next one must be an operator in order to succed the parsing.
         if (words[1] != NULL && optable_find(words[1]) == NULL) {
-            if (str_ptrs[1] == NULL) {
-                int j = 0;
-                while (s[j] != '\0') j++;
-                printf("%c\n", s[j]);
-                *errptr = &s[j];
-            }
+            if (words_ptrs[1] == NULL)
+                *errptr = &s[strlen(s)];
             set_error_msg("expected operator");
             return 0;
         }
-        //Vê se o rotulo e valido.
+        // Verifies if the label is valid.
         if (words[0][0] != '_' && !isalpha(words[0][0])) {
             set_error_msg("invalid label");
-            *errptr = str_ptrs[0];
+            *errptr = words_ptrs[0];
             return 0;
         }
         else
             for (unsigned int i = 1; i < strlen(words[0]); i++)
                 if (words[0][i] != '_' && !isalnum(words[0][i])) {
                     set_error_msg("invalid label");
-                    *errptr = str_ptrs[0];
+                    *errptr = words_ptrs[0];
                     return 0;
                 }
         init = 2;
         label = estrdup(words[0]);
-        get_arg_types(words, alias_table, arg_types, init, errptr, str_ptrs);
+        get_arg_types(words, alias_table, arg_types, init, errptr, words_ptrs);
         operands_create(opds, arg_types, words, init);
-        operat = optable_find(words[1]);
+        op = optable_find(words[1]);
     }
-
-    //Linha sem label, e com um operando que existe, precisa ver se tem os args certos.
-    else {
-        get_arg_types(words, alias_table, arg_types, 1, errptr, str_ptrs);
+    else { // There is no label but there is an operator.
+        get_arg_types(words, alias_table, arg_types, 1, errptr, words_ptrs);
         operands_create(opds, arg_types, words, 1);
     }
-    //Entrou aqui então ou o nArgs ou os tipos estão errados.
-    if (!right_args(s, operat, arg_types, errptr, init, str_ptrs))
+    // The number of arguments or the types are wrong.
+    if (!right_args(s, op, arg_types, errptr, init, words_ptrs))
         return 0;
-
-    //veio até aqui então ta tudo certo.
-    *instr = instr_create(label, operat, opds);
-    //*errptr = NULL;
+    *instr = instr_create(label, op, opds); // Creates the instruction.
 
     return 1;
 }
