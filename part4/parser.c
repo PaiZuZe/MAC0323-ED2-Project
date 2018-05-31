@@ -110,10 +110,12 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
             return 0;
         }
         // Argument does not exist, so we set its type to OP_NONE.
-        if (words[i] == NULL) arg_types[i - init] = OP_NONE;
+        if (words[i] == NULL)
+            arg_types[i - init] = OP_NONE;
 
         // If it has a '$', then it is a register.
-        else if (words[i][0] == '$') arg_types[i - init] = REGISTER;
+        else if (words[i][0] == '$')
+            arg_types[i - init] = REGISTER;
 
         // The label is in the s_table.
         else if ((data = stable_find(alias_table, words[i])) != NULL)
@@ -142,7 +144,8 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 void operands_create(Operand **opds, OperandType *arg_types, char **words, int init)
 {
     for (int i = init; i < MAX_NUM_OPERANDS + init; i++) {
-        if (arg_types[i] == OP_NONE) return;
+        if (arg_types[i] == OP_NONE)
+            return;
 
         else if ((arg_types[i] & REGISTER) == REGISTER)
             opds[i] = operand_create_register(words[i][1]);
