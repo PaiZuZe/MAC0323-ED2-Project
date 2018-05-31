@@ -27,7 +27,7 @@ char **split_line(const char *str, const char **words_ptrs)
 {
     int count = 0;
     bool new_word = true;
-    char **words = emalloc(sizeof(char *) * 5);
+    char **words = emalloc(sizeof(char *) * MAX_NUM_WORDS);
     Buffer *b = buffer_create(sizeof(char));
 
     // Adding '\0' to every word.
@@ -172,8 +172,8 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     const Operator *op = NULL;
     const char **words_ptrs = emalloc(sizeof(char *) * MAX_NUM_WORDS);
     char **words = split_line(s, words_ptrs);
-    OperandType arg_types[3] = {OP_NONE, OP_NONE, OP_NONE};
-    Operand *opds[3] = {NULL, NULL, NULL};
+    OperandType arg_types[MAX_NUM_OPERANDS] = {OP_NONE, OP_NONE, OP_NONE};
+    Operand *opds[MAX_NUM_OPERANDS] = {NULL, NULL, NULL};
 
     // Empty line.
     if (words[0] == NULL)
