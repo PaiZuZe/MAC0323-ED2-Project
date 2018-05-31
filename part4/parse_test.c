@@ -116,8 +116,12 @@ int main (int argc, char **argv)
 */
     printf ("E agora os testes do parser!\n");
 
+    set_prog_name(argv[0]);
+
     Instruction **instr = emalloc(sizeof(Instruction *));
     const char **errptr = emalloc(sizeof(char *));
+    *errptr = NULL;
+
     //test only comment
     char *words0 = "* Teste";
     //test adding label
@@ -135,19 +139,46 @@ int main (int argc, char **argv)
     //wrong kind of arg.
     char *words7 = "CALL start, 2,$3";
 
+
+    char *words8 = "     DIV     a,$0";
+
+
     SymbolTable ST = stable_create();
     InsertionResult bob;
 
+    printf("====================================================================================\n");
     printf("Testando o 0\n");
     if (parse(words0, ST, instr, errptr) == 0)
         print_error_msg(NULL);
     else
         printf("Deu bom para o 0\n");
+
+    if (*errptr != NULL)
+        printf("%s\n", *errptr);
+    else
+        printf("ERRPT É NULL!\n");
+
+    *errptr = NULL;
+    printf("\n\n");
+
+
+    printf("====================================================================================\n");
     printf("Testando o 1\n");
     if (parse(words1, ST, instr, errptr) == 0)
         print_error_msg(NULL);
     else
         printf("Deu bom para o 1\n");
+
+    if (*errptr != NULL)
+        printf("%s\n", *errptr);
+    else
+        printf("ERRPT É NULL!\n");
+
+    *errptr = NULL;
+    printf("\n\n");
+
+
+    printf("====================================================================================\n");
     bob = stable_insert(ST, "a");
     if (bob.new) bob.data->opd = operand_create_register('2');
     printf("Testando o 2\n");
@@ -155,6 +186,16 @@ int main (int argc, char **argv)
         print_error_msg(NULL);
     else
         printf("Deu bom para o 2\n");
+
+    if (*errptr != NULL)
+        printf("%s\n", *errptr);
+    else
+        printf("ERRPT É NULL!\n");
+
+    *errptr = NULL;
+    printf("\n\n");
+
+    printf("====================================================================================\n");
     bob = stable_insert(ST, "start");
     if (bob.new) bob.data->opd = operand_create_label("blah");
     printf("Testando o 3\n");
@@ -162,26 +203,93 @@ int main (int argc, char **argv)
         print_error_msg(NULL);
     else
         printf("Deu bom para o 3\n");
+
+    if (*errptr != NULL)
+        printf("%s\n", *errptr);
+    else
+        printf("ERRPT É NULL!\n");
+
+    *errptr = NULL;
+    printf("\n\n");
+
+    printf("====================================================================================\n");
+
     printf("Testando o 4\n");
     if (parse(words4, ST, instr, errptr) == 0)
         print_error_msg(NULL);
     else
         printf("Deu bom para o 4\n");
+
+    if (*errptr != NULL)
+        printf("%s\n", *errptr);
+    else
+        printf("ERRPT É NULL!\n");
+
+    *errptr = NULL;
+    printf("\n\n");
+
+printf("====================================================================================\n");
+
     printf("Testando o 5\n");
     if (parse(words5, ST, instr, errptr) == 0)
         print_error_msg(NULL);
     else
         printf("Deu bom para o 5\n");
+
+    if (*errptr != NULL)
+        printf("%s\n", *errptr);
+    else
+        printf("ERRPT É NULL!\n");
+
+    *errptr = NULL;
+    printf("\n\n");
+
+    printf("====================================================================================\n");
+
     printf("Testando o 6\n");
     if (parse(words6, ST, instr, errptr) == 0)
         print_error_msg(NULL);
     else
         printf("Deu bom para o 6\n");
+
+    if (*errptr != NULL)
+        printf("%s\n", *errptr);
+    else
+        printf("ERRPT É NULL!\n");
+
+    *errptr = NULL;
+    printf("\n\n");
+
+    printf("====================================================================================\n");
+
     printf("Testando o 7\n");
     if (parse(words7, ST, instr, errptr) == 0)
         print_error_msg(NULL);
     else
         printf("Deu bom para o 7\n");
+    if (*errptr != NULL)
+        printf("%s\n", *errptr);
+    else
+        printf("ERRPT É NULL!\n");
+
+    printf("====================================================================================\n");
+
+    printf("Testando o 8\n");
+
+    int j = 0;
+    while (words8[j] != '\0') j++;
+    if (parse(words8, ST, instr, errptr) == 0)
+        print_error_msg(NULL);
+    else
+        printf("Deu bom para o 8\n");
+    if (*errptr != NULL)
+        printf("%s\n", *errptr);
+    else
+        printf("ERRPT É NULL!\n");
+
+
+    *errptr = NULL;
+    printf("\n");
 
     return 0;
 }
