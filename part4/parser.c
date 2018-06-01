@@ -122,8 +122,20 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
             arg_types[i - init] = OP_NONE;
 
         // If it has a '$', then it is a register.
-        else if (words[i][0] == '$')
+        else if (words[i][0] == '$') {
+            for (unsigned int j = 1; j < strlen(words[i]); j++)
+                if (!isdigit(words[i][j])) {
+                    *errptr = words_ptrs[i];
+                    set_error_msg("not a valid register");
+                    return 0;
+                }
+            if (strtoll(&words[i][1], NULL, 10) > 255) {
+                *errptr = words_ptrs[i];
+                set_error_msg("not a valid register");
+                return 0;
+            }
             arg_types[i - init] = REGISTER;
+        }
 
         // If it has at the start '"' and at the end, then it is a string.
         else if (words[i][0] == '"')
