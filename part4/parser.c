@@ -141,7 +141,7 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 
         // Is a negative number?
         else if (words[i][0] == '-') {
-            for (unsigned int j = 1; j < strlen(word[i]); j++)
+            for (unsigned int j = 1; j < strlen(words[i]); j++)
                 if (!isdigit(words[i][j])) {
                     *errptr = words_ptrs[i];
                     set_error_msg("expected label, register or number");
@@ -170,7 +170,7 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
             else if (num < 4294967295)
                 arg_types[i - init] = TETRABYTE;
             else {
-                *errptr = words[i][j];
+                *errptr = words[i];
                 set_error_msg("number is too big");
                 return 0;
             }
@@ -199,7 +199,7 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
             else if (num < 4294967295)
                 arg_types[i - init] = TETRABYTE;
             else {
-                *errptr = words[i][j];
+                *errptr = words[i];
                 set_error_msg("number is too big");
                 return 0;
             }
@@ -210,7 +210,8 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 
 int is_num_type(OperandType arg_type) {
     OperandType type = arg_type & NUMBER_TYPE;
-    if (type == BYTE1 || type == BYTE2 || type == BYTE3 || type == TETRABYTE)
+    if (type == BYTE1 || type == BYTE2 || type == BYTE3 || type == TETRABYTE
+        || type == NEG_NUMBER)
         return 1;
     return 0;
 }
