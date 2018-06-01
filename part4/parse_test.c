@@ -112,6 +112,7 @@ int main (int argc, char **argv)
 
         free (parsed);
         parsed = NULL;
+        printf ("To parse line: %s\n", (char *) buffer->data);
         if (parse ((const char *) buffer->data, aliases, &parsed, (const char **) &error)) {
             if (parsed) print_parsed_line ((const char *) buffer->data, parsed, aliases);
         }

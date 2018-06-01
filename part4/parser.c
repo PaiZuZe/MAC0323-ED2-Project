@@ -142,21 +142,22 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 
 // Creates the operands in opds.
 void operands_create(Operand **opds, OperandType *arg_types, char **words, int init)
-{
+{ int j;
     for (int i = init; i < MAX_NUM_OPERANDS + init; i++) {
-        if (arg_types[i] == OP_NONE)
+        j = i - init;
+        if (arg_types[j] == OP_NONE)
             return;
 
-        else if ((arg_types[i] & REGISTER) == REGISTER)
+        else if ((arg_types[j] & REGISTER) == REGISTER)
             opds[i] = operand_create_register(words[i][1]);
 
-        else if ((arg_types[i] & NUMBER_TYPE) == BYTE1)
+        else if ((arg_types[j] & NUMBER_TYPE) == BYTE1)
             opds[i] = operand_create_number((octa) words[i]);
 
-        else if ((arg_types[i] & LABEL) == LABEL)
+        else if ((arg_types[j] & LABEL) == LABEL)
             opds[i] = operand_create_label(words[i]);
 
-        else if ((arg_types[i] & STRING) == STRING)
+        else if ((arg_types[j] & STRING) == STRING)
             opds[i] = operand_create_string(words[i]);
     }
 }

@@ -14,7 +14,7 @@ OBJ := $(SRC:.c=.o)
 OUT := bin/
 
 .PHONY: all
-all: ${BIN}
+all: ${OUT} ${BIN}
 
 .PHONY: clean
 clean:
