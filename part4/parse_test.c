@@ -5,19 +5,22 @@
 #include <string.h>
 #include <stdio.h>
 
+#define ERR_PAD 7
 static int line_number = 0;
-static int err_pad = 0;
 
 void print_error (const char *line, char *errptr)
 {
     char *c = (char *) line;
+    int n = snprintf (NULL, 0, "%d", line_number); // Works for C99 standard
 
     printf ("line %d: %s\n", line_number, c);
-    /*while (c != errptr) {
-        printf (" a");
+    for (int i = 0; i < n + ERR_PAD; i++) printf (" ");
+    while (c != errptr) {
+        printf (" ");
         c++;
-    }*/
-    print_error_msg ("^\nError:");
+    }
+    printf ("^\n");
+    print_error_msg (NULL);
 }
 
 void print_operand (Operand *opd)
@@ -45,7 +48,7 @@ int validate_alias (Instruction *instruction, SymbolTable alias_table)
     int valid = 0;
     InsertionResult result = stable_insert (alias_table, instruction->label);
 
-    if (result.new != 0) {
+    if (result.new) {
         (result.data)->opd = instruction->opds[0];
         valid = 1;
     }
@@ -58,18 +61,21 @@ void print_parsed_line (const char *line, Instruction *instruction, SymbolTable 
     if (instruction->op == optable_find ("IS")) {
         if (instruction->label) {
             if (!(validate_alias (instruction, alias_table))) {
-                printf ("Label dup error\n");
-                set_error_msg ("label %s already in use", instruction->label);
+                set_error_msg ("label \"%s\" already in use", instruction->label);
                 print_error (line, (char *) line);
                 return;
             }
         }
         else {
-            printf ("Label miss error\n");
-            set_error_msg ("label missing");
+            set_error_msg ("IS operator expects a label");
             print_error (line, (char *) line);
             return;
         }
+    }
+    else if (instruction->label) {
+        InsertionResult result = stable_insert (alias_table, instruction->label);
+        if (result.new)
+            (result.data)->opd = operand_create_label (instruction->label);
     }
 
     printf ("line     = %s\n", line);
@@ -98,7 +104,6 @@ int main (int argc, char **argv)
     char *error, c;
 
     set_prog_name (argv[0]);
-    err_pad = strlen (argv[0]);
     if (argc - 1 != 1)
         die ("Wrong number of arguments (%d given, 1 expected)\n", argc - 1);
 
@@ -121,191 +126,13 @@ int main (int argc, char **argv)
         if (parse ((const char *) buffer->data, aliases, &parsed, (const char **) &error)) {
             if (parsed) print_parsed_line ((const char *) buffer->data, parsed, aliases);
         }
-        else {
-            printf ("Parse error\n");
+        else
             print_error ((const char *) buffer->data, error);
-        }
         printf ("\n");
     }
 
     stable_destroy (aliases);
     buffer_destroy (buffer);
     fclose (input);
-    //return 0;
-
-    printf ("E agora os testes do parser!\n");
-
-    set_prog_name(argv[0]);
-
-    Instruction **instr = emalloc(sizeof(Instruction *));
-    const char **errptr = emalloc(sizeof(char *));
-    *errptr = NULL;
-
-    //test only comment
-    char *words0 = "* Teste";
-    //test adding label
-    char *words1 = "a      IS      $0";
-    //test working with two label
-    char *words2 = "start  ADD     a,a,1";
-    //test one label and comment
-    char *words3 = "       MUL     a,$2,$3     * Multiplica.";
-    //just label
-    char *words4 = "      JMP     start";
-    //missing args
-    char *words5 = "     DIV     a,2";
-    char *words6 = "MUL  a, $2,$3";
-
-    //wrong kind of arg.
-    char *words7 = "CALL start, 2,$3";
-
-
-    char *words8 = "     DIV     a,$0";
-
-
-    SymbolTable ST = stable_create();
-    InsertionResult bob;
-
-    printf("====================================================================================\n");
-    printf("Testando o 0\n");
-    if (parse(words0, ST, instr, errptr) == 0)
-        print_error_msg(NULL);
-    else
-        printf("Deu bom para o 0\n");
-
-    if (*errptr != NULL)
-        printf("%s\n", *errptr);
-    else
-        printf("ERRPT É NULL!\n");
-
-    *errptr = NULL;
-    printf("\n\n");
-
-
-    printf("====================================================================================\n");
-    printf("Testando o 1\n");
-    if (parse(words1, ST, instr, errptr) == 0)
-        print_error_msg(NULL);
-    else
-        printf("Deu bom para o 1\n");
-
-    if (*errptr != NULL)
-        printf("%s\n", *errptr);
-    else
-        printf("ERRPT É NULL!\n");
-
-    *errptr = NULL;
-    printf("\n\n");
-
-    printf("====================================================================================\n");
-    bob = stable_insert(ST, "a");
-    if (bob.new) bob.data->opd = operand_create_register('2');
-    printf("Testando o 2\n");
-    if (parse(words2, ST, instr, errptr) == 0)
-        print_error_msg(NULL);
-    else
-        printf("Deu bom para o 2\n");
-
-    if (*errptr != NULL)
-        printf("%s\n", *errptr);
-    else
-        printf("ERRPT É NULL!\n");
-
-    *errptr = NULL;
-    printf("\n\n");
-
-    printf("====================================================================================\n");
-    bob = stable_insert(ST, "start");
-    if (bob.new) bob.data->opd = operand_create_label("blah");
-    printf("Testando o 3\n");
-    if (parse(words3, ST, instr, errptr) == 0)
-        print_error_msg(NULL);
-    else
-        printf("Deu bom para o 3\n");
-
-    if (*errptr != NULL)
-        printf("%s\n", *errptr);
-    else
-        printf("ERRPT É NULL!\n");
-
-    *errptr = NULL;
-    printf("\n\n");
-
-    printf("====================================================================================\n");
-
-    printf("Testando o 4\n");
-    if (parse(words4, ST, instr, errptr) == 0)
-        print_error_msg(NULL);
-    else
-        printf("Deu bom para o 4\n");
-
-    if (*errptr != NULL)
-        printf("%s\n", *errptr);
-    else
-        printf("ERRPT É NULL!\n");
-
-    *errptr = NULL;
-    printf("\n\n");
-
-printf("====================================================================================\n");
-
-    printf("Testando o 5\n");
-    if (parse(words5, ST, instr, errptr) == 0)
-        print_error_msg(NULL);
-    else
-        printf("Deu bom para o 5\n");
-
-    if (*errptr != NULL)
-        printf("%s\n", *errptr);
-    else
-        printf("ERRPT É NULL!\n");
-
-    *errptr = NULL;
-    printf("\n\n");
-
-    printf("====================================================================================\n");
-
-    printf("Testando o 6\n");
-    if (parse(words6, ST, instr, errptr) == 0)
-        print_error_msg(NULL);
-    else
-        printf("Deu bom para o 6\n");
-
-    if (*errptr != NULL)
-        printf("%s\n", *errptr);
-    else
-        printf("ERRPT É NULL!\n");
-
-    *errptr = NULL;
-    printf("\n\n");
-
-    printf("====================================================================================\n");
-
-    printf("Testando o 7\n");
-    if (parse(words7, ST, instr, errptr) == 0)
-        print_error_msg(NULL);
-    else
-        printf("Deu bom para o 7\n");
-    if (*errptr != NULL)
-        printf("%s\n", *errptr);
-    else
-        printf("ERRPT É NULL!\n");
-
-    printf("====================================================================================\n");
-
-    printf("Testando o 8\n");
-
-    if (parse(words8, ST, instr, errptr) == 0)
-        print_error_msg(NULL);
-    else
-        printf("Deu bom para o 8\n");
-    if (*errptr != NULL)
-        printf("%s\n", *errptr);
-    else
-        printf("ERRPT É NULL!\n");
-
-
-    *errptr = NULL;
-    printf("\n");
-
     return 0;
 }
