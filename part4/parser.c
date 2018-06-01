@@ -285,13 +285,15 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
                 }
         init = 2;
         label = estrdup(words[0]);
-        get_arg_types(words, alias_table, arg_types, init, errptr, words_ptrs);
+        if(!get_arg_types(words, alias_table, arg_types, init, errptr, words_ptrs))
+            return 0;
         operands_create(opds, arg_types, words, init);
         op = optable_find(words[1]);
     }
     // There is no label but there is an operator.
     else {
-        get_arg_types(words, alias_table, arg_types, init, errptr, words_ptrs);
+        if(!get_arg_types(words, alias_table, arg_types, init, errptr, words_ptrs))
+            return 0;
         operands_create(opds, arg_types, words, init);
     }
     // The number of arguments or the types are wrong.
