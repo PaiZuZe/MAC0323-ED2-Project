@@ -27,6 +27,7 @@ char **split_line(const char *str, const char **words_ptrs)
 {
     int count = 0;
     bool new_word = true;
+    bool is_string = false;
     char **words = emalloc(sizeof(char *) * MAX_NUM_WORDS);
     Buffer *b = buffer_create(sizeof(char));
 
@@ -39,8 +40,14 @@ char **split_line(const char *str, const char **words_ptrs)
         if (str[i] == '*')
             break;
 
+        // Checks if we are adding a string.
+        if (new_word && str[i] == '"')
+            is_string = true;
+        else if (is_string && str[i] == '"')
+            is_string = false;
+
         // str[i] belongs to a word
-        if (!isspace(str[i]) && str[i] != ',') {
+        if ((!isspace(str[i]) && str[i] != ',') || is_string) {
             if (new_word) {
                 new_word = false;
                 words_ptrs[count] = &str[i];
@@ -101,7 +108,8 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 
     // Goes through every word that is an operand and get their types.
     for (int i = init; i < MAX_NUM_OPERANDS + init; i++) {
-        /* One operand has already appeared and the label has the same
+        /*
+         * One operand has already appeared and the label has the same
          * name of a operand.
          */
         if (words[i] != NULL && optable_find(words[i]) != NULL) {
@@ -117,11 +125,58 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
         else if (words[i][0] == '$')
             arg_types[i - init] = REGISTER;
 
+        // If it has at the start '"' and at the end, then it is a string.
+        else if (words[i][0] == '"')
+            if (words[i][strlen(words[i]) - 1] == '"') // SE VOCÊ LER ISSO APAGUE ESSE COMENTÁRIO
+                arg_types[i - init] = STRING;
+            else {
+                *errptr = words_ptrs[i];
+                set_error_msg("expected \", at the end of string");
+                return 0;
+            }
+
         // The label is in the s_table.
         else if ((data = stable_find(alias_table, words[i])) != NULL)
             arg_types[i - init] = data->opd->type;
 
-        // It may be an IMMEDIATE.
+        // Is a negative number?
+        else if (words[i][0] == '-') {
+            for (unsigned int j = 1; j < strlen(word[i]); j++)
+                if (!isdigit(words[i][j])) {
+                    *errptr = words_ptrs[i];
+                    set_error_msg("expected label, register or number");
+                    return 0;
+                }
+            // HEXADECIMAL NEGATIVO? VERIFICAR O TAMANHO DO NÚMERO
+            arg_types[i - init] = NEG_NUMBER;
+        }
+
+        //It's a Hexa decimal number?
+        else if (words[i][0] == '#') {
+            for (unsigned int j = 0; j < strlen(words[i]); j++) {
+                if (!isxdigit(words[i][j])) {
+                    *errptr = words_ptrs[i];
+                    set_error_msg("expected label, register or number");
+                    return 0;
+                }
+            }
+            long long int num = strtoll(words[i], NULL, 16);
+            if (num < 255)
+                arg_types[i - init] = BYTE1;
+            else if (num < 65535)
+                arg_types[i - init] = BYTE2;
+            else if (num < 16777215)
+                arg_types[i - init] = BYTE3;
+            else if (num < 4294967295)
+                arg_types[i - init] = TETRABYTE;
+            else {
+                *errptr = words[i][j];
+                set_error_msg("number is too big");
+                return 0;
+            }
+        }
+
+        // It must be a decimal number.
         else {
             /*
              * Iterates through a word to see if it is a number. If it is not
@@ -134,10 +189,30 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
                     return 0;
                 }
             }
-            arg_types[i - init] = BYTE1;
+            long long int num = strtoll(words[i], NULL, 10);
+            if (num < 255)
+                arg_types[i - init] = BYTE1;
+            else if (num < 65535)
+                arg_types[i - init] = BYTE2;
+            else if (num < 16777215)
+                arg_types[i - init] = BYTE3;
+            else if (num < 4294967295)
+                arg_types[i - init] = TETRABYTE;
+            else {
+                *errptr = words[i][j];
+                set_error_msg("number is too big");
+                return 0;
+            }
         }
     }
     return 1;
+}
+
+int is_num_type(OperandType arg_type) {
+    OperandType type = arg_type & NUMBER_TYPE;
+    if (type == BYTE1 || type == BYTE2 || type == BYTE3 || type == TETRABYTE)
+        return 1;
+    return 0;
 }
 
 // Creates the operands in opds.
@@ -149,10 +224,13 @@ void operands_create(Operand **opds, OperandType *arg_types, char **words, int i
             return;
 
         else if ((arg_types[j] & REGISTER) == REGISTER)
-            opds[j] = operand_create_register(words[i][1]);
+            opds[j] = operand_create_register(atoi(&words[i][1]));
 
-        else if ((arg_types[j] & NUMBER_TYPE) == BYTE1)
-            opds[j] = operand_create_number(strtoll(words[i], NULL, 10));
+        else if (is_num_type(arg_types[j]))
+            if (words[i][0] == '#')
+                opds[j] = operand_create_number(strtoll(words[i], NULL, 16));
+            else
+                opds[j] = operand_create_number(strtoll(words[i], NULL, 10));
 
         else if ((arg_types[j] & LABEL) == LABEL)
             opds[j] = operand_create_label(words[i]);
