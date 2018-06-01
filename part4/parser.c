@@ -149,16 +149,16 @@ void operands_create(Operand **opds, OperandType *arg_types, char **words, int i
             return;
 
         else if ((arg_types[j] & REGISTER) == REGISTER)
-            opds[i] = operand_create_register(words[i][1]);
+            opds[j] = operand_create_register(words[i][1]);
 
         else if ((arg_types[j] & NUMBER_TYPE) == BYTE1)
-            opds[i] = operand_create_number((octa) words[i]);
+            opds[j] = operand_create_number(strtoll(words[i], NULL, 10));
 
         else if ((arg_types[j] & LABEL) == LABEL)
-            opds[i] = operand_create_label(words[i]);
+            opds[j] = operand_create_label(words[i]);
 
         else if ((arg_types[j] & STRING) == STRING)
-            opds[i] = operand_create_string(words[i]);
+            opds[j] = operand_create_string(words[i]);
         j++;
     }
 }

@@ -1,9 +1,12 @@
 #include "parser.h"
 #include "buffer.h"
-#include "error.h"
 #include "optable.h"
+#include "error.h"
+#include <string.h>
+#include <stdio.h>
 
 static int line_number = 0;
+static int err_pad = 0;
 
 void print_error (const char *line, char *errptr)
 {
@@ -21,11 +24,11 @@ void print_operand (Operand *opd)
 {
     if (opd->type == REGISTER)
         printf ("Register(%u)", (opd->value).reg);
-    else if (opd->type == REGISTER)
+    else if (opd->type == LABEL)
         printf ("Label(%s)", (opd->value).label);
-    else if (opd->type == REGISTER)
+    else if (opd->type == NUMBER_TYPE)
         printf ("Number(%lld)", (opd->value).num);
-    else if (opd->type == REGISTER)
+    else if (opd->type == STRING)
         printf ("String(%s)", (opd->value).str);
     else
         printf ("Operand(?)");
@@ -55,12 +58,14 @@ void print_parsed_line (const char *line, Instruction *instruction, SymbolTable 
     if (instruction->op == optable_find ("IS")) {
         if (instruction->label) {
             if (!(validate_alias (instruction, alias_table))) {
+                printf ("Label dup error\n");
                 set_error_msg ("label %s already in use", instruction->label);
                 print_error (line, (char *) line);
                 return;
             }
         }
         else {
+            printf ("Label miss error\n");
             set_error_msg ("label missing");
             print_error (line, (char *) line);
             return;
@@ -92,7 +97,8 @@ int main (int argc, char **argv)
     Instruction *parsed = emalloc (sizeof(Instruction));
     char *error, c;
 
-    set_prog_name(argv[0]);
+    set_prog_name (argv[0]);
+    err_pad = strlen (argv[0]);
     if (argc - 1 != 1)
         die ("Wrong number of arguments (%d given, 1 expected)\n", argc - 1);
 
@@ -112,12 +118,13 @@ int main (int argc, char **argv)
 
         free (parsed);
         parsed = NULL;
-        printf ("To parse line: %s\n", (char *) buffer->data);
         if (parse ((const char *) buffer->data, aliases, &parsed, (const char **) &error)) {
             if (parsed) print_parsed_line ((const char *) buffer->data, parsed, aliases);
         }
-        else
+        else {
+            printf ("Parse error\n");
             print_error ((const char *) buffer->data, error);
+        }
         printf ("\n");
     }
 
