@@ -61,13 +61,13 @@ void print_parsed_line (const char *line, Instruction *instruction, SymbolTable 
     if (instruction->op == optable_find ("IS")) {
         if (instruction->label) {
             if (!(validate_alias (instruction, alias_table))) {
-                set_error_msg ("label %s already in use", instruction->label);
+                set_error_msg ("label \"%s\" already in use", instruction->label);
                 print_error (line, (char *) line);
                 return;
             }
         }
         else {
-            set_error_msg ("label missing");
+            set_error_msg ("IS operator expects a label");
             print_error (line, (char *) line);
             return;
         }

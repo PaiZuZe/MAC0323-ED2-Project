@@ -1,0 +1,8 @@
+* Teste
+a      IS      $0
+start  ADD     a,a,1
+       MUL     a,$2,$3     * Multiplica.
+a      IS      $3
+       IS      $4
+       JMP     start
+       DIV     a,2
