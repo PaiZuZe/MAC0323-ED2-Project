@@ -11,7 +11,7 @@ BIN := parse_test
 SRC := $(wildcard *.c)
 OBJ := $(SRC:.c=.o)
 
-OUT := ./
+OUT := bin/
 
 .PHONY: all
 all: ${BIN}

@@ -74,21 +74,23 @@ void print_parsed_line (const char *line, Instruction *instruction, SymbolTable 
         printf ("label    = n/a\n");
     printf ("operator = %s\n", (instruction->op)->name);
     printf ("operands = ");
-    for (int i = 0; i < 2; i++) {
-        print_operand (instruction->opds[i]);
-        printf (", ");
-    }
-    print_operand (instruction->opds[2]);
+    if (instruction->opds[0])
+        print_operand (instruction->opds[0]);
+    for (int i = 1; i <= 2; i++)
+        if (instruction->opds[i]) {
+            printf (", ");
+            print_operand (instruction->opds[i]);
+        }
     printf ("\n");
 }
 
 int main (int argc, char **argv)
-{/*
+{
     FILE *input;
-    Buffer *buffer = buffer_create(sizeof (char));
-    SymbolTable aliases = stable_create();
-    Instruction *parsed;
-    char *error;
+    Buffer *buffer = buffer_create (sizeof(char));
+    SymbolTable aliases = stable_create ();
+    Instruction *parsed = emalloc (sizeof(Instruction));
+    char *error, c;
 
     set_prog_name(argv[0]);
     if (argc - 1 != 1)
@@ -98,12 +100,21 @@ int main (int argc, char **argv)
     if (input == NULL)
         die ("Error reading file %s:", argv[1]);
 
-    while (fgetc (input) != EOF) {
+    while ((c = fgetc (input)) != EOF) {
+        ungetc (c, input);
         line_number++;
-        read_line (input, buffer);
 
-        if (parse ((const char *) buffer->data, aliases, &parsed, (const char **) &error))
-            print_parsed_line ((const char *) buffer->data, parsed, aliases);
+        read_line (input, buffer);
+        if (((char *) buffer->data)[buffer->p - 1] == '\n')
+            ((char *) buffer->data)[buffer->p - 1] = '\0';
+        else
+            buffer_push_char(buffer, '\0');
+
+        free (parsed);
+        parsed = NULL;
+        if (parse ((const char *) buffer->data, aliases, &parsed, (const char **) &error)) {
+            if (parsed) print_parsed_line ((const char *) buffer->data, parsed, aliases);
+        }
         else
             print_error ((const char *) buffer->data, error);
         printf ("\n");
@@ -113,7 +124,7 @@ int main (int argc, char **argv)
     buffer_destroy (buffer);
     fclose (input);
     //return 0;
-*/
+
     printf ("E agora os testes do parser!\n");
 
     set_prog_name(argv[0]);
@@ -145,7 +156,7 @@ int main (int argc, char **argv)
 
     SymbolTable ST = stable_create();
     InsertionResult bob;
-    
+
     printf("====================================================================================\n");
     printf("Testando o 0\n");
     if (parse(words0, ST, instr, errptr) == 0)
