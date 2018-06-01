@@ -142,9 +142,9 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 
 // Creates the operands in opds.
 void operands_create(Operand **opds, OperandType *arg_types, char **words, int init)
-{ int j;
+{
+    int j = 0;
     for (int i = init; i < MAX_NUM_OPERANDS + init; i++) {
-        j = i - init;
         if (arg_types[j] == OP_NONE)
             return;
 
@@ -159,6 +159,7 @@ void operands_create(Operand **opds, OperandType *arg_types, char **words, int i
 
         else if ((arg_types[j] & STRING) == STRING)
             opds[i] = operand_create_string(words[i]);
+        j++;
     }
 }
 
@@ -211,8 +212,8 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     }
     // There is no label but there is an operator.
     else {
-        get_arg_types(words, alias_table, arg_types, 1, errptr, words_ptrs);
-        operands_create(opds, arg_types, words, 1);
+        get_arg_types(words, alias_table, arg_types, init, errptr, words_ptrs);
+        operands_create(opds, arg_types, words, init);
     }
     // The number of arguments or the types are wrong.
     if (!right_args(s, op, arg_types, errptr, init, words_ptrs))
