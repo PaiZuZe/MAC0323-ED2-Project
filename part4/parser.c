@@ -251,7 +251,7 @@ void operands_create(Operand **opds, OperandType *arg_types, char **words, int i
 
         else if (is_num_type(arg_types[j]))
             if (words[i][0] == '#')
-                opds[j] = operand_create_number(strtoll(words[i], NULL, 16));
+                opds[j] = operand_create_number(strtoll(&words[i][1], NULL, 16));
             else
                 opds[j] = operand_create_number(strtoll(words[i], NULL, 10));
 

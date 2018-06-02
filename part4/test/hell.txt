@@ -19,4 +19,5 @@ start  ADD     b,b,1
        STR     ""
        STR     "LOBO MAYUSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSAAasaassasasa"
        STR     "/""
-       ADD 
+       ADD          
+       ADD     $66 $3 #f
