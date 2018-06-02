@@ -75,6 +75,25 @@ char **split_line(const char *str, const char **words_ptrs)
     return words;
 }
 
+// Returns 1 if the OperandType arg_type is a NUMBER_TYPE or 0 otherwise.
+int is_num_type(OperandType arg_type)
+{
+    OperandType type = arg_type & NUMBER_TYPE;
+    if (type == BYTE1 || type == BYTE2 || type == BYTE3 || type == TETRABYTE || type == NEG_NUMBER)
+        return 1;
+    return 0;
+}
+
+// If arg_type is ADDR, returns the number type it supports.
+OperandType get_num(OperandType arg_type)
+{
+    if (arg_type == ADDR3)
+        return BYTE3;
+    else if (arg_type == ADDR2)
+        return BYTE2;
+    return arg_type;
+}
+
 /*
  * Returns 1 if the the types in types matches with the Operator *op types,
  * returns 0 otherwise. *errptr is set is set before returning 0.
@@ -89,6 +108,13 @@ int right_args(const char *s, const Operator *op, OperandType *types,
             return 0;
         }
         else if ((op->opd_types[i] & types[i]) != types[i]) {
+            OperandType type = get_num(op->opd_types[i]);
+            if (is_num_type(type) && is_num_type(types[i])) {
+            	if (types[i] < type) {
+            		types[i] = op->opd_types[i];
+            		continue;
+            	}
+            }
             *errptr = words_ptrs[i + init];
             set_error_msg("wrong operand type");
             return 0;
@@ -97,12 +123,13 @@ int right_args(const char *s, const Operator *op, OperandType *types,
     return 1;
 }
 
-/* 
+/*
  * Return the the specific NUM_TYPE of the number contained in word in the base
- * given, it can be 10 (decimal) or 16 (hexadecimal). Returns 0 if it is a 
+ * given, it can be 10 (decimal) or 16 (hexadecimal). Returns 0 if it is a
  * number that cannot be represented in MACAL for being too big.
  */
-int get_num_type(const char **errptr, const char *word_ptr, char *word, int base) {
+int get_num_type(const char **errptr, const char *word_ptr, char *word, int base)
+{
     long long int num = strtoll(word, NULL, base);
     if (num < 255)
         return BYTE1;
@@ -228,14 +255,6 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
     }
 
     return 1;
-}
-
-// Returns 1 if the OperandType arg_type is a NUMBER_TYPE or 0 otherwise.
-int is_num_type(OperandType arg_type) {
-    OperandType type = arg_type & NUMBER_TYPE;
-    if (type == BYTE1 || type == BYTE2 || type == BYTE3 || type == TETRABYTE || type == NEG_NUMBER)
-        return 1;
-    return 0;
 }
 
 // Creates the operands in opds.
