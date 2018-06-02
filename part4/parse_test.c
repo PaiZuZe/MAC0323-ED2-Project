@@ -20,19 +20,27 @@ void print_error (const char *line, const char *errptr)
     char *c = (char *) line;
     int n = snprintf (NULL, 0, "%d", line_number); // Works for C99 standard
 
-    printf ("line %d: %s\n", line_number, line);
+    fprintf (stderr, "line %d: %s\n", line_number, line);
     for (int i = 0; i < n + ERR_PAD; i++)
-        printf (" ");
+        fprintf (stderr, " ");
 
     while (c != errptr) {
         if (*c == '\t')
-            printf ("\t");
+            fprintf (stderr, "\t");
         else
-            printf (" ");
+            fprintf (stderr, " ");
         c++;
     }
-    printf ("^\n");
+    fprintf (stderr, "^\n");
     print_error_msg (NULL);
+}
+
+void ilist_destroy (Instruction *ilist)
+{
+    Instruction *next = ilist->next;
+printf("call to ilist dest\n");
+    if (next) ilist_destroy (next);
+    instr_destroy(ilist);
 }
 
 // Prints the Operand *opd type and its value.
@@ -117,7 +125,7 @@ int main (int argc, char **argv)
     Buffer *buffer = buffer_create (sizeof(char));
     SymbolTable aliases = stable_create ();
     Instruction **parsed = emalloc (sizeof(Instruction *));
-    Instruction *tmp = emalloc (sizeof(Instruction));
+    Instruction *tmp = NULL;
 
     set_prog_name (argv[0]);
     if (argc - 1 != 1)
@@ -138,21 +146,26 @@ int main (int argc, char **argv)
         else
             buffer_push_char(buffer, '\0');
 
-        c = 1;
+        c = 0;
         if (parse ((const char *) buffer->data, aliases, parsed, errptr)) {
             if (*parsed) {
                 print_parsed_line ((const char *) buffer->data, *parsed, aliases);
-                tmp = *parsed;
+                if (!tmp) {
+                    tmp = emalloc (sizeof(Instruction));
+                    *tmp = **parsed;
+                }
                 *parsed = (*parsed)->next;
-                instr_destroy(tmp);
+                c = 1;
             }
-            else c = 0;
         }
-        else
+        else {
             print_error ((const char *) buffer->data, *errptr);
+            fprintf (stderr, "\n");
+        }
         if (c) printf ("\n");
     }
 
+    ilist_destroy (tmp);
     free (parsed);
     free(errptr);
     stable_destroy (aliases);
