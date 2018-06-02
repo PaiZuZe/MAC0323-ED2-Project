@@ -117,6 +117,7 @@ int main (int argc, char **argv)
     Buffer *buffer = buffer_create (sizeof(char));
     SymbolTable aliases = stable_create ();
     Instruction **parsed = emalloc (sizeof(Instruction *));
+    Instruction *tmp = emalloc (sizeof(Instruction));
 
     set_prog_name (argv[0]);
     if (argc - 1 != 1)
@@ -136,21 +137,27 @@ int main (int argc, char **argv)
             ((char *) buffer->data)[buffer->p - 1] = '\0';
         else
             buffer_push_char(buffer, '\0');
+
         c = 1;
         if (parse ((const char *) buffer->data, aliases, parsed, errptr)) {
-            if (parsed)
+            if (*parsed) {
                 print_parsed_line ((const char *) buffer->data, *parsed, aliases);
+                tmp = *parsed;
+                *parsed = (*parsed)->next;
+                instr_destroy(tmp);
+            }
             else c = 0;
         }
         else
             print_error ((const char *) buffer->data, *errptr);
         if (c) printf ("\n");
-
     }
-    free(parsed);
+
+    free (parsed);
     free(errptr);
     stable_destroy (aliases);
     buffer_destroy (buffer);
     fclose (input);
+
     return 0;
 }
