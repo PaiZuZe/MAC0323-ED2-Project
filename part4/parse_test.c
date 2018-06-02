@@ -1,3 +1,9 @@
+/*
+    Guilherme Costa Vieira               9790930
+    Gabriel Kazuyuki Isomura             9793673
+    Victor Chiaradia Gramuglia Araujo    9793756
+*/
+
 #include "parser.h"
 #include "buffer.h"
 #include "optable.h"
