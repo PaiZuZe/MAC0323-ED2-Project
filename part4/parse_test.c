@@ -129,8 +129,8 @@ int main (int argc, char **argv)
         parsed = NULL;
         printf("%s\n", (char *) buffer->data);
         if (parse ((const char *) buffer->data, aliases, &parsed, errptr)) {
-            printf("OLÁ\n");
-            if (parsed) print_parsed_line ((const char *) buffer->data, parsed, aliases);
+            if (parsed)
+                print_parsed_line ((const char *) buffer->data, parsed, aliases);
         }
         else
             print_error ((const char *) buffer->data, *errptr);

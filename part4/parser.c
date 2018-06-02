@@ -65,7 +65,7 @@ char **split_line(const char *str, const char **words_ptrs)
         }
     }
     // Add the last word in the words vector.
-    if (count != 0) {
+    if (!new_word) {
         buffer_push_char(b, '\0');
         b->p += 1;
         words[count++] = estrdup((char *) b->data);
@@ -83,15 +83,12 @@ int right_args(const char *s, const Operator *op, OperandType *types,
                const char **errptr, int init, char const **words_ptrs)
 {
     for (int i = 0; i < MAX_NUM_OPERANDS; i++) {
-        //printf("%u\n", types[i]);
         if (types[i] == OP_NONE && op->opd_types[i] != OP_NONE) {
-            printf("HEY\n");
             *errptr = &s[strlen(s)];
             set_error_msg("expected operand");
             return 0;
         }
         else if ((op->opd_types[i] & types[i]) != types[i]) {
-            printf("FUDEU");
             *errptr = words_ptrs[i + init];
             set_error_msg("wrong operand type");
             return 0;
@@ -111,7 +108,6 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 
     // Goes through every word that is an operand and get their types.
     for (int i = init; i < MAX_NUM_OPERANDS + init; i++) {
-        printf("%s\n", words[i]);
         /*
          * One operand has already appeared and the label has the same
          * name of a operand.
@@ -168,7 +164,6 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
                     set_error_msg("expected label, register or number");
                     return 0;
                 }
-            // HEXADECIMAL NEGATIVO? VERIFICAR O TAMANHO DO NÚMERO
             arg_types[i - init] = NEG_NUMBER;
         }
 
@@ -282,9 +277,6 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     char **words = split_line(s, words_ptrs);
     OperandType arg_types[MAX_NUM_OPERANDS] = {OP_NONE, OP_NONE, OP_NONE};
     Operand *opds[MAX_NUM_OPERANDS] = {NULL, NULL, NULL};
-    for (int i = 0; i < MAX_NUM_WORDS; i++)
-        printf("%s ", words[i]);
-    printf("\n");
 
     // Empty line.
     if (words[0] == NULL)
