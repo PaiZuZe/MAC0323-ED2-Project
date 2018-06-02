@@ -13,7 +13,7 @@ void print_error (const char *line, const char *errptr)
     char *c = (char *) line;
     int n = snprintf (NULL, 0, "%d", line_number); // Works for C99 standard
 
-    printf ("line %d: %s\n", line_number, c);
+    printf ("line %d: %s\n", line_number, line);
     for (int i = 0; i < n + ERR_PAD; i++) printf (" ");
     while (c != errptr) {
         if (*c == '\t')
@@ -132,10 +132,8 @@ int main (int argc, char **argv)
             printf("OLÁ\n");
             if (parsed) print_parsed_line ((const char *) buffer->data, parsed, aliases);
         }
-        else {
-            printf("PRINTANDO %s\n", *errptr);
+        else
             print_error ((const char *) buffer->data, *errptr);
-        }
         printf ("\n");
     }
 
