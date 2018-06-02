@@ -16,7 +16,10 @@ void print_error (const char *line, const char *errptr)
     printf ("line %d: %s\n", line_number, c);
     for (int i = 0; i < n + ERR_PAD; i++) printf (" ");
     while (c != errptr) {
-        printf (" ");
+        if (*c == '\t')
+            printf ("\t");
+        else
+            printf (" ");
         c++;
     }
     printf ("^\n");
@@ -124,7 +127,9 @@ int main (int argc, char **argv)
 
         free (parsed);
         parsed = NULL;
+        printf("%s\n", (char *) buffer->data);
         if (parse ((const char *) buffer->data, aliases, &parsed, errptr)) {
+            printf("OLÁ\n");
             if (parsed) print_parsed_line ((const char *) buffer->data, parsed, aliases);
         }
         else {

@@ -12,4 +12,11 @@ start  ADD     b,b,1
        ADD     $1, $255, -12
 	   ADD     $1, $255, 12
 	   ADD     $1, $255, #
-
+	   TETRA   26777215
+       TETRA   12
+       TETRA   -12
+       STR     "
+       STR     ""
+       STR     "LOBO MAYUSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSAAasaassasasa"
+       STR     "/""
+       ADD 
