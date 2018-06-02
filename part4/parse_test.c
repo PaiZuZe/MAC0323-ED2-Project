@@ -8,7 +8,7 @@
 #define ERR_PAD 7
 static int line_number = 0;
 
-void print_error (const char *line, char *errptr)
+void print_error (const char *line, const char *errptr)
 {
     char *c = (char *) line;
     int n = snprintf (NULL, 0, "%d", line_number); // Works for C99 standard
@@ -97,11 +97,12 @@ void print_parsed_line (const char *line, Instruction *instruction, SymbolTable 
 
 int main (int argc, char **argv)
 {
+    char c;
+    const char **errptr = emalloc(sizeof(char *));
     FILE *input;
     Buffer *buffer = buffer_create (sizeof(char));
     SymbolTable aliases = stable_create ();
     Instruction *parsed = emalloc (sizeof(Instruction));
-    char *error, c;
 
     set_prog_name (argv[0]);
     if (argc - 1 != 1)
@@ -123,11 +124,13 @@ int main (int argc, char **argv)
 
         free (parsed);
         parsed = NULL;
-        if (parse ((const char *) buffer->data, aliases, &parsed, (const char **) &error)) {
+        if (parse ((const char *) buffer->data, aliases, &parsed, errptr)) {
             if (parsed) print_parsed_line ((const char *) buffer->data, parsed, aliases);
         }
-        else
-            print_error ((const char *) buffer->data, error);
+        else {
+            printf("PRINTANDO %s\n", *errptr);
+            print_error ((const char *) buffer->data, *errptr);
+        }
         printf ("\n");
     }
 

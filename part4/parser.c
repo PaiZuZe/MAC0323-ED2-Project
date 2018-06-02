@@ -89,7 +89,7 @@ int right_args(const char *s, const Operator *op, OperandType *types,
             return 0;
         }
         else if ((op->opd_types[i] & types[i]) != types[i]) {
-            *errptr = words_ptrs[i+init];
+            *errptr = words_ptrs[i + init];
             set_error_msg("wrong operand type");
             return 0;
         }
@@ -123,6 +123,11 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 
         // If it has a '$', then it is a register.
         else if (words[i][0] == '$') {
+            if (strlen(words[i]) == 1) {
+                *errptr = words_ptrs[i];
+                set_error_msg("Not valid register");
+                return 0;
+            }
             for (unsigned int j = 1; j < strlen(words[i]); j++)
                 if (!isdigit(words[i][j])) {
                     *errptr = words_ptrs[i];
@@ -139,7 +144,7 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 
         // If it has at the start '"' and at the end, then it is a string.
         else if (words[i][0] == '"')
-            if (words[i][strlen(words[i]) - 1] == '"') // SE VOCÊ LER ISSO APAGUE ESSE COMENTÁRIO
+            if (words[i][strlen(words[i]) - 1] == '"' && strlen(words[i]) > 1)
                 arg_types[i - init] = STRING;
             else {
                 *errptr = words_ptrs[i];
@@ -165,14 +170,19 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
 
         //It's a Hexa decimal number?
         else if (words[i][0] == '#') {
-            for (unsigned int j = 0; j < strlen(words[i]); j++) {
+            if (strlen(words[i]) == 1) {
+                *errptr = words_ptrs[i];
+                set_error_msg("Not valid hexadecimal");
+                return 0;
+            }
+            for (unsigned int j = 1; j < strlen(words[i]); j++) {
                 if (!isxdigit(words[i][j])) {
                     *errptr = words_ptrs[i];
                     set_error_msg("expected label, register or number");
                     return 0;
                 }
             }
-            long long int num = strtoll(words[i], NULL, 16);
+            long long int num = strtoll(&words[i][1], NULL, 16);
             if (num < 255)
                 arg_types[i - init] = BYTE1;
             else if (num < 65535)
@@ -182,7 +192,7 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
             else if (num < 4294967295)
                 arg_types[i - init] = TETRABYTE;
             else {
-                *errptr = words[i];
+                *errptr = words_ptrs[i];
                 set_error_msg("number is too big");
                 return 0;
             }
@@ -211,7 +221,7 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
             else if (num < 4294967295)
                 arg_types[i - init] = TETRABYTE;
             else {
-                *errptr = words[i];
+                *errptr = words_ptrs[i];
                 set_error_msg("number is too big");
                 return 0;
             }
@@ -313,6 +323,7 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
         return 0;
     // Creates the instruction.
     *instr = instr_create(label, op, opds);
+    *errptr = NULL;
 
     return 1;
 }
