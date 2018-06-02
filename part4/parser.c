@@ -283,6 +283,20 @@ void operands_create(Operand **opds, OperandType *arg_types, char **words, int i
     }
 }
 
+void destroy(const char **words_ptrs, char **words, char *label)
+{
+    if (label != NULL)
+        free(label);
+    free(words_ptrs);
+    for (unsigned int i = 0; i < MAX_NUM_WORDS; i++)
+        if (words[i] != NULL)
+            free(words[i]);
+        else
+            break;
+    free(words);
+    return;
+}
+
 /*
  * Breaks the instruction of assembler language in its parts: label operator
  * and operands. Returns 1 if it succeds or 0 otherwise.
@@ -298,8 +312,10 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
     Operand *opds[MAX_NUM_OPERANDS] = {NULL, NULL, NULL};
 
     // Empty line.
-    if (words[0] == NULL)
+    if (words[0] == NULL) {
+        destroy(words_ptrs, words, label);
         return 1;
+    }
 
     op = optable_find(words[0]);
     // There is a label.
@@ -309,12 +325,14 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
             if (words_ptrs[1] == NULL)
                 *errptr = &s[strlen(s)];
             set_error_msg("expected operator");
+            destroy(words_ptrs, words, label);
             return 0;
         }
         // Verifies if the label is valid.
         if (words[0][0] != '_' && !isalpha(words[0][0])) {
             set_error_msg("invalid label");
             *errptr = words_ptrs[0];
+            destroy(words_ptrs, words, label);
             return 0;
         }
         else
@@ -322,29 +340,41 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr, const cha
                 if (words[0][i] != '_' && !isalnum(words[0][i])) {
                     set_error_msg("invalid label");
                     *errptr = words_ptrs[0];
+                    destroy(words_ptrs, words, label);
                     return 0;
                 }
         init = 2;
         label = estrdup(words[0]);
-        if(!get_arg_types(words, alias_table, arg_types, init, errptr, words_ptrs))
+        if(!get_arg_types(words, alias_table, arg_types, init, errptr, words_ptrs)) {
+            destroy(words_ptrs, words, label);
             return 0;
+        }
         operands_create(opds, arg_types, words, init);
         op = optable_find(words[1]);
     }
     // There is no label but there is an operator.
     else {
-        if (!get_arg_types(words, alias_table, arg_types, init, errptr, words_ptrs))
+        if (!get_arg_types(words, alias_table, arg_types, init, errptr, words_ptrs)) {
+            destroy(words_ptrs, words, label);
             return 0;
+        }
 
         operands_create(opds, arg_types, words, init);
     }
     // The number of arguments or the types are wrong.
-    if (!right_args(s, op, arg_types, errptr, init, words_ptrs))
+    if (!right_args(s, op, arg_types, errptr, init, words_ptrs)) {
+        for (int i = 0; i < MAX_NUM_OPERANDS; i++)
+            if (arg_types[i] != OP_NONE)
+                free(opds[i]);
+            else
+                break;
+        destroy(words_ptrs, words, label);
         return 0;
-
+    }
     // Creates the instruction.
     *instr = instr_create(label, op, opds);
     *errptr = NULL;
+    destroy(words_ptrs, words, NULL);
 
     return 1;
 }

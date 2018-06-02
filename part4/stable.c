@@ -50,6 +50,8 @@ void bucket_destroy (Bucket head)
     Bucket bkt;
 
     if (head != NULL) {
+        if (head->key != NULL) free(head->key);
+        if (head->val != NULL) free(head->val);
         bkt = head->next;
         free (head);
         bucket_destroy (bkt);
@@ -145,6 +147,7 @@ void stable_destroy (SymbolTable table)
 
     if (table != NULL) {
         for (i = 0; i < table->size; i++) bucket_destroy (table->data[i]);
+        free (table->data);
         free (table);
     }
 }
@@ -202,4 +205,3 @@ int stable_visit (SymbolTable table,
 
     return result;
 }
-

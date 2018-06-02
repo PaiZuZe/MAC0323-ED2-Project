@@ -21,9 +21,9 @@ void print_error (const char *line, const char *errptr)
     int n = snprintf (NULL, 0, "%d", line_number); // Works for C99 standard
 
     printf ("line %d: %s\n", line_number, line);
-    for (int i = 0; i < n + ERR_PAD; i++) 
+    for (int i = 0; i < n + ERR_PAD; i++)
         printf (" ");
-    
+
     while (c != errptr) {
         if (*c == '\t')
             printf ("\t");
@@ -53,7 +53,7 @@ void print_operand (Operand *opd)
 /*
  * Handles IS pseudo-operator
  *
- * If alias is valid adds entry in symbol table and returns a positive 
+ * If alias is valid adds entry in symbol table and returns a positive
  * non-zero integer, if alias is not valid returns zero.
  */
 int validate_alias (Instruction *instruction, SymbolTable alias_table)
@@ -69,7 +69,7 @@ int validate_alias (Instruction *instruction, SymbolTable alias_table)
     return valid;
 }
 
-// Prints the parsed line with the specs of its instruction. 
+// Prints the parsed line with the specs of its instruction.
 void print_parsed_line (const char *line, Instruction *instruction, SymbolTable alias_table)
 {
     if (instruction->op == optable_find ("IS")) {
@@ -116,7 +116,7 @@ int main (int argc, char **argv)
     FILE *input;
     Buffer *buffer = buffer_create (sizeof(char));
     SymbolTable aliases = stable_create ();
-    Instruction *parsed = emalloc (sizeof(Instruction));
+    Instruction **parsed = emalloc (sizeof(Instruction *));
 
     set_prog_name (argv[0]);
     if (argc - 1 != 1)
@@ -136,20 +136,19 @@ int main (int argc, char **argv)
             ((char *) buffer->data)[buffer->p - 1] = '\0';
         else
             buffer_push_char(buffer, '\0');
-
-        free (parsed);
-        parsed = NULL;
         c = 1;
-        if (parse ((const char *) buffer->data, aliases, &parsed, errptr)) {
+        if (parse ((const char *) buffer->data, aliases, parsed, errptr)) {
             if (parsed)
-                print_parsed_line ((const char *) buffer->data, parsed, aliases);
+                print_parsed_line ((const char *) buffer->data, *parsed, aliases);
             else c = 0;
         }
         else
             print_error ((const char *) buffer->data, *errptr);
         if (c) printf ("\n");
-    }
 
+    }
+    free(parsed);
+    free(errptr);
     stable_destroy (aliases);
     buffer_destroy (buffer);
     fclose (input);

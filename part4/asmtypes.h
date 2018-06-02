@@ -12,7 +12,7 @@
 // Masks of operand types.
 #define OP_NONE      0     // No operand.
 #define BYTE1        0x01  // One-byte number.
-#define BYTE2        0x02  // Two-byte number.
+#define BYTE2        0x02  // Two-byte number. 
 #define BYTE3        0x04  // Three-byte number.
 #define TETRABYTE    0x08  // A tetrabyte.
 #define LABEL        0x10  // Label.
@@ -68,9 +68,9 @@ typedef struct {
 // A parsed instruction:
 //    label   op   opds
 //
-// lineno = linha da instrução no arquivo
+// lineno = linha da instrução no arquivo 
 // pos    = índice da instrução no buffer
-//
+// 
 typedef struct instruction_s {
   // Label associated with the instruction.
   char *label;
@@ -83,12 +83,12 @@ typedef struct instruction_s {
 
   // Line number in input file.
   int lineno;
-
+    
   // Instruction position in the buffer.
   int pos;
 
   // Instructions are kept in a linked list.
-  struct instruction_s *next;
+  struct instruction_s *next;  
 } Instruction;
 
 
