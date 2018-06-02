@@ -21,3 +21,8 @@ start  ADD     b,b,1
        STR     "/""
        ADD          
        ADD     $66 $3 #f
+       JN      a, 70000
+       JN      $2, 60000
+       JN      a, -68695940043
+       JMP     60000
+       JMP     70000
