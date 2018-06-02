@@ -14,13 +14,16 @@
 #define ERR_PAD 7
 static int line_number = 0;
 
+// Prints the str line and a '^'' above the the word indicated by errptr.
 void print_error (const char *line, const char *errptr)
 {
     char *c = (char *) line;
     int n = snprintf (NULL, 0, "%d", line_number); // Works for C99 standard
 
     printf ("line %d: %s\n", line_number, line);
-    for (int i = 0; i < n + ERR_PAD; i++) printf (" ");
+    for (int i = 0; i < n + ERR_PAD; i++) 
+        printf (" ");
+    
     while (c != errptr) {
         if (*c == '\t')
             printf ("\t");
@@ -32,6 +35,7 @@ void print_error (const char *line, const char *errptr)
     print_error_msg (NULL);
 }
 
+// Prints the Operand *opd type and its value.
 void print_operand (Operand *opd)
 {
     if (opd->type == REGISTER)
@@ -47,11 +51,11 @@ void print_operand (Operand *opd)
 }
 
 /*
-    Handles IS pseudo-operator
-
-    If alias is valid adds entry in symbol table and returns a positive non-zero
-    integer, if alias is not valid returns zero.
-*/
+ * Handles IS pseudo-operator
+ *
+ * If alias is valid adds entry in symbol table and returns a positive 
+ * non-zero integer, if alias is not valid returns zero.
+ */
 int validate_alias (Instruction *instruction, SymbolTable alias_table)
 {
     int valid = 0;
@@ -65,6 +69,7 @@ int validate_alias (Instruction *instruction, SymbolTable alias_table)
     return valid;
 }
 
+// Prints the parsed line with the specs of its instruction. 
 void print_parsed_line (const char *line, Instruction *instruction, SymbolTable alias_table)
 {
     if (instruction->op == optable_find ("IS")) {

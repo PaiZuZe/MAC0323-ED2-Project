@@ -97,12 +97,34 @@ int right_args(const char *s, const Operator *op, OperandType *types,
     return 1;
 }
 
+/* 
+ * Return the the specific NUM_TYPE of the number contained in word in the base
+ * given, it can be 10 (decimal) or 16 (hexadecimal). Returns 0 if it is a 
+ * number that cannot be represented in MACAL for being too big.
+ */
+int get_num_type(const char **errptr, const char *word_ptr, char *word, int base) {
+    long long int num = strtoll(word, NULL, base);
+    if (num < 255)
+        return BYTE1;
+    else if (num < 65535)
+        return BYTE2;
+    else if (num < 16777215)
+        return BYTE3;
+    else if (num < 4294967295)
+        return TETRABYTE;
+    else {
+        *errptr = word_ptr;
+        set_error_msg("number is too big");
+        return 0;
+    }
+}
+
 /*
  * Returns 1 if it could get the types of the words in the instruction and 0
  * otherwise.
  */
 int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
-                  int init, const char **errptr, char const **words_ptrs)
+                  int init, const char **errptr, const char **words_ptrs)
 {
     EntryData *data;
 
@@ -167,7 +189,7 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
             arg_types[i - init] = NEG_NUMBER;
         }
 
-        //It's a Hexa decimal number?
+        // Is a Hexadecimal number?
         else if (words[i][0] == '#') {
             if (strlen(words[i]) == 1) {
                 *errptr = words_ptrs[i];
@@ -181,20 +203,9 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
                     return 0;
                 }
             }
-            long long int num = strtoll(&words[i][1], NULL, 16);
-            if (num < 255)
-                arg_types[i - init] = BYTE1;
-            else if (num < 65535)
-                arg_types[i - init] = BYTE2;
-            else if (num < 16777215)
-                arg_types[i - init] = BYTE3;
-            else if (num < 4294967295)
-                arg_types[i - init] = TETRABYTE;
-            else {
-                *errptr = words_ptrs[i];
-                set_error_msg("number is too big");
+            arg_types[i - init] = get_num_type(errptr, words_ptrs[i], &words[i][1], 16);
+            if (!arg_types[i - init])
                 return 0;
-            }
         }
 
         // It must be a decimal number.
@@ -210,30 +221,19 @@ int get_arg_types(char **words, SymbolTable alias_table, OperandType *arg_types,
                     return 0;
                 }
             }
-            long long int num = strtoll(words[i], NULL, 10);
-            if (num < 255)
-                arg_types[i - init] = BYTE1;
-            else if (num < 65535)
-                arg_types[i - init] = BYTE2;
-            else if (num < 16777215)
-                arg_types[i - init] = BYTE3;
-            else if (num < 4294967295)
-                arg_types[i - init] = TETRABYTE;
-            else {
-                *errptr = words_ptrs[i];
-                set_error_msg("number is too big");
+            arg_types[i - init] = get_num_type(errptr, words_ptrs[i], words[i], 10);
+            if (!arg_types[i - init])
                 return 0;
-            }
         }
     }
 
     return 1;
 }
 
+// Returns 1 if the OperandType arg_type is a NUMBER_TYPE or 0 otherwise.
 int is_num_type(OperandType arg_type) {
     OperandType type = arg_type & NUMBER_TYPE;
-    if (type == BYTE1 || type == BYTE2 || type == BYTE3 || type == TETRABYTE
-        || type == NEG_NUMBER)
+    if (type == BYTE1 || type == BYTE2 || type == BYTE3 || type == TETRABYTE || type == NEG_NUMBER)
         return 1;
     return 0;
 }
