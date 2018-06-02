@@ -121,6 +121,7 @@ int main (int argc, char **argv)
     if (input == NULL)
         die ("Error reading file %s:", argv[1]);
 
+    printf ("\n");
     while ((c = fgetc (input)) != EOF) {
         ungetc (c, input);
         line_number++;
@@ -133,14 +134,15 @@ int main (int argc, char **argv)
 
         free (parsed);
         parsed = NULL;
-        printf("%s\n", (char *) buffer->data);
+        c = 1;
         if (parse ((const char *) buffer->data, aliases, &parsed, errptr)) {
             if (parsed)
                 print_parsed_line ((const char *) buffer->data, parsed, aliases);
+            else c = 0;
         }
         else
             print_error ((const char *) buffer->data, *errptr);
-        printf ("\n");
+        if (c) printf ("\n");
     }
 
     stable_destroy (aliases);
