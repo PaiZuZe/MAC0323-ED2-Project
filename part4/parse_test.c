@@ -14,7 +14,7 @@ void print_error (const char *line, const char *errptr)
     int n = snprintf (NULL, 0, "%d", line_number); // Works for C99 standard
 
     printf ("line %d: %s\n", line_number, line);
-    for (int i = 0; i < n + ERR_PAD; i++) printf (".");
+    for (int i = 0; i < n + ERR_PAD; i++) printf (" ");
     while (c != errptr) {
         if (*c == '\t')
             printf ("\t");
