@@ -20,6 +20,7 @@ all: ${OUT} ${BIN}
 clean:
 	${RM} ${OUT}${BIN}
 	${RM} ${OBJ}
+	rm -rf ${OUT}
 
 $(BIN): ${OBJ}
 	${CC} ${CFLAGS} $^ -o ${OUT}$@
