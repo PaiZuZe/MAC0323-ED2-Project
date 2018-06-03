@@ -37,10 +37,10 @@ void print_error (const char *line, const char *errptr)
 
 void ilist_destroy (Instruction *ilist)
 {
+    if (ilist == NULL) return;
     Instruction *next = ilist->next;
-printf("call to ilist dest\n");
-    if (next) ilist_destroy (next);
     instr_destroy(ilist);
+    ilist_destroy (next);
 }
 
 // Prints the Operand *opd type and its value.
@@ -165,7 +165,7 @@ int main (int argc, char **argv)
         if (c) printf ("\n");
     }
 
-    ilist_destroy (tmp);
+    ilist_destroy (*parsed);
     free (parsed);
     free(errptr);
     stable_destroy (aliases);
