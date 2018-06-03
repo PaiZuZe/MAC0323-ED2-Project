@@ -91,6 +91,10 @@ OperandType get_num(OperandType arg_type)
         return BYTE3;
     else if (arg_type == ADDR2)
         return BYTE2;
+    else if (arg_type == (TETRABYTE | NEG_NUMBER))
+    	return TETRABYTE;
+    else if (arg_type == (REGISTER | TETRABYTE | NEG_NUMBER))
+    	return TETRABYTE;
     return arg_type;
 }
 
